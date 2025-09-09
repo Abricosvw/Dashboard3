@@ -22,8 +22,8 @@ static TaskHandle_t background_task_handle = NULL;
 // Максимальный размер очереди
 #define BACKGROUND_QUEUE_SIZE 10
 
-// Размер стека для фоновой задачи
-#define BACKGROUND_TASK_STACK_SIZE 4096
+// Размер стека для фоновой задачи (увеличен для предотвращения переполнения)
+#define BACKGROUND_TASK_STACK_SIZE 8192
 
 // Приоритет фоновой задачи (ниже чем у LVGL)
 #define BACKGROUND_TASK_PRIORITY 4
