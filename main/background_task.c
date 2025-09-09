@@ -25,8 +25,8 @@ static TaskHandle_t background_task_handle = NULL;
 // Размер стека для фоновой задачи
 #define BACKGROUND_TASK_STACK_SIZE 4096
 
-// Приоритет фоновой задачи
-#define BACKGROUND_TASK_PRIORITY 5
+// Приоритет фоновой задачи (ниже чем у LVGL)
+#define BACKGROUND_TASK_PRIORITY 4
 
 /**
  * @brief Основная функция фоновой задачи
