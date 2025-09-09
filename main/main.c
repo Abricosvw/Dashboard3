@@ -115,16 +115,16 @@ void app_main(void)
         if (can_ret == ESP_OK) {
             ESP_LOGI(TAG, "CAN bus started successfully!");
 
-            // Create CAN task
-            xTaskCreate(canbus_task, "can_task", 4096, NULL, 10, NULL);
+            // Create CAN task and pin it to Core 1
+            xTaskCreatePinnedToCore(canbus_task, "can_task", 4096, NULL, 10, NULL, 1);
             ESP_LOGI(TAG, "CAN task created");
 
             // Start WebSocket server for CAN data (port 8080)
             esp_err_t ws_ret = start_websocket_server();
             if (ws_ret == ESP_OK) {
                 ESP_LOGI(TAG, "WebSocket server for CAN started successfully!");
-                // Create WebSocket broadcast task
-                xTaskCreate(websocket_broadcast_task, "ws_broadcast", 4096, NULL, 5, NULL);
+                // Create WebSocket broadcast task and pin it to Core 1
+                xTaskCreatePinnedToCore(websocket_broadcast_task, "ws_broadcast", 4096, NULL, 5, NULL, 1);
             } else {
                 ESP_LOGE(TAG, "Failed to start WebSocket server: %s", esp_err_to_name(ws_ret));
             }

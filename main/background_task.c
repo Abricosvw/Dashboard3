@@ -143,14 +143,15 @@ esp_err_t background_task_init(void)
         return ESP_ERR_NO_MEM;
     }
 
-    // Создание фоновой задачи
-    BaseType_t ret = xTaskCreate(
+    // Создание фоновой задачи и привязка к ядру 1
+    BaseType_t ret = xTaskCreatePinnedToCore(
         background_task_worker,
         "bg_worker",
         BACKGROUND_TASK_STACK_SIZE,
         NULL,
         BACKGROUND_TASK_PRIORITY,
-        &background_task_handle
+        &background_task_handle,
+        1 // Pin to Core 1
     );
 
     if (ret != pdPASS) {
