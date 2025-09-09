@@ -28,32 +28,6 @@ screen_id_t ui_get_next_enabled_screen(screen_id_t current_screen, bool forward)
 screen_id_t ui_get_prev_enabled_screen(screen_id_t current_screen, bool forward);
 void ui_switch_to_next_enabled_screen(bool forward);
 
-// Touch screen functions
-void touch_screen_init(void);
-void touch_screen_enable(void);
-void touch_screen_disable(void);
-bool touch_screen_is_enabled(void);
-void touch_screen_set_sensitivity(uint8_t sensitivity);
-void touch_screen_calibrate(void);
-// Get swipe threshold (removed - no longer supported)
-int16_t ui_get_swipe_threshold(void);
-
-// Add touch functionality to gauge
-void add_touch_to_gauge(lv_obj_t * gauge, const char * gauge_name);
-
-// Touch event handlers
-void general_touch_handler(lv_event_t * e);
-
-// Touch sensitivity functions
-uint8_t ui_get_touch_sensitivity(void);
-
-// Swipe gesture functions
-void ui_enable_swipe_gestures(void);
-void ui_disable_swipe_gestures(void);
-
-// Navigation buttons
-void ui_create_navigation_buttons(void);
-void ui_update_navigation_buttons(void);
 
 // Cleanup function
 void ui_screen_manager_cleanup(void);

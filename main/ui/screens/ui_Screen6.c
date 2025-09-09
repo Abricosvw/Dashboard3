@@ -25,8 +25,6 @@ void * ui_Button_Enable_Screen3;
 void * ui_Button_Save_Settings;
 void * ui_Button_Reset_Settings;
 
-// Touch cursor object
-lv_obj_t * ui_Touch_Cursor_Screen6;
 
 // Settings state
 static int settings_modified = 0;
@@ -51,21 +49,6 @@ void ui_save_device_settings(void);
 void ui_reset_device_settings(void);
 
 
-// Touch handler for general touch events
-static void screen6_touch_handler(lv_event_t * e) {
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (code == LV_EVENT_PRESSED) {
-        lv_point_t point;
-        lv_indev_t * indev = lv_indev_get_act();
-        if (indev) {
-            lv_indev_get_point(indev, &point);
-            ui_update_touch_cursor_screen6(&point);
-        }
-    } else if (code == LV_EVENT_RELEASED) {
-        lv_obj_add_flag((lv_obj_t*)ui_Touch_Cursor_Screen6, LV_OBJ_FLAG_HIDDEN);
-    }
-}
 
 // Swipe handler for screen switching
 static void swipe_handler_screen6(lv_event_t * e) {
@@ -218,16 +201,7 @@ void ui_Screen6_screen_init(void)
     lv_obj_set_style_text_font(reset_label, &lv_font_montserrat_14, 0);
     lv_obj_center(reset_label);
 
-    // Initialize touch cursor
-    ui_Touch_Cursor_Screen6 = lv_obj_create(ui_Screen6);
-    lv_obj_set_size(ui_Touch_Cursor_Screen6, 30, 30);
-    lv_obj_set_style_bg_color(ui_Touch_Cursor_Screen6, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(ui_Touch_Cursor_Screen6, 15, 0);
-    lv_obj_add_flag(ui_Touch_Cursor_Screen6, LV_OBJ_FLAG_HIDDEN);
-
     // Add event handlers
-    lv_obj_add_event_cb(ui_Screen6, screen6_touch_handler, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_Screen6, screen6_touch_handler, LV_EVENT_RELEASED, NULL);
     lv_obj_add_event_cb(ui_Screen6, swipe_handler_screen6, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen6, swipe_handler_screen6, LV_EVENT_RELEASED, NULL);
 
@@ -257,14 +231,6 @@ void ui_Screen6_screen_init(void)
     ui_Screen6_update_button_states();
 }
 
-// Destroy Screen6
-void ui_Screen6_screen_destroy(void)
-{
-    if(ui_Screen6) {
-        lv_obj_del(ui_Screen6);
-        ui_Screen6 = NULL;
-    }
-}
 
 // Load Screen6 settings from NVS
 void ui_Screen6_load_settings(void)
@@ -348,12 +314,3 @@ void ui_reset_device_settings(void)
     ui_Screen6_save_settings();
 }
 
-// Update touch cursor position for Screen6
-void ui_update_touch_cursor_screen6(void * point)
-{
-    if (ui_Touch_Cursor_Screen6 && point) {
-        lv_point_t * p = (lv_point_t*)point;
-        lv_obj_set_pos((lv_obj_t*)ui_Touch_Cursor_Screen6, p->x - 15, p->y - 15);
-        lv_obj_clear_flag((lv_obj_t*)ui_Touch_Cursor_Screen6, LV_OBJ_FLAG_HIDDEN);
-    }
-}

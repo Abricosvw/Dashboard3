@@ -20,8 +20,6 @@ void * ui_TextArea_CAN_Terminal;
 void * ui_Label_CAN_Status;
 void * ui_Label_CAN_Count;
 
-// Touch cursor object
-lv_obj_t * ui_Touch_Cursor_Screen3;
 
 // Advanced CAN Terminal Objects
 void * ui_Button_Clear;
@@ -59,23 +57,6 @@ static int can_sniffer_is_id_filtered(uint32_t id);
 static int can_sniffer_search_in_data(uint8_t *data, uint8_t dlc, const char *search_term);
 static void can_sniffer_update_statistics(uint32_t id);
 
-// Touch handler for general touch events
-static void screen3_touch_handler(lv_event_t * e) {
-    lv_event_code_t code = lv_event_get_code(e);
-    
-    if (code == LV_EVENT_PRESSED) {
-        // Show touch cursor at touch point
-        lv_point_t point;
-        lv_indev_t * indev = lv_indev_get_act();
-        if (indev) {
-            lv_indev_get_point(indev, &point);
-            ui_update_touch_cursor_screen3(&point);
-        }
-    } else if (code == LV_EVENT_RELEASED) {
-        // Hide touch cursor
-        lv_obj_add_flag((lv_obj_t*)ui_Touch_Cursor_Screen3, LV_OBJ_FLAG_HIDDEN);
-    }
-}
 
 // Swipe handler for screen switching
 static void swipe_handler_screen3(lv_event_t * e) {
@@ -393,17 +374,7 @@ void ui_Screen3_screen_init(void)
 
 
     
-    // Initialize touch cursor for Screen3
-    ui_Touch_Cursor_Screen3 = lv_obj_create(ui_Screen3);
-    lv_obj_set_size(ui_Touch_Cursor_Screen3, 30, 30);
-    lv_obj_set_style_bg_color(ui_Touch_Cursor_Screen3, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(ui_Touch_Cursor_Screen3, 15, 0);
-    lv_obj_set_style_opa(ui_Touch_Cursor_Screen3, 0, 0); // Initially hidden
-    lv_obj_add_flag(ui_Touch_Cursor_Screen3, LV_OBJ_FLAG_HIDDEN);
     
-    // Add touch event handlers for basic touch functionality
-    lv_obj_add_event_cb(ui_Screen3, screen3_touch_handler, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_Screen3, screen3_touch_handler, LV_EVENT_RELEASED, NULL);
     
     // Add swipe functionality for screen switching
     lv_obj_add_event_cb(ui_Screen3, swipe_handler_screen3, LV_EVENT_PRESSED, NULL);
@@ -458,11 +429,6 @@ void ui_Screen3_screen_init(void)
 
 }
 
-// Destroy Screen3
-void ui_Screen3_screen_destroy(void)
-{
-    lv_obj_del(ui_Screen3);
-}
 
 // Add CAN message to terminal with search
 void ui_add_can_message(const char* message)
@@ -546,16 +512,6 @@ void ui_update_can_status(int connected, int message_count)
     }
 }
 
-// Update touch cursor position for Screen3
-void ui_update_touch_cursor_screen3(void * point)
-{
-    if (ui_Touch_Cursor_Screen3 && point) {
-        lv_point_t * p = (lv_point_t*)point;
-        lv_obj_set_pos((lv_obj_t*)ui_Touch_Cursor_Screen3, p->x - 15, p->y - 15);
-        lv_obj_clear_flag((lv_obj_t*)ui_Touch_Cursor_Screen3, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_set_style_opa((lv_obj_t*)ui_Touch_Cursor_Screen3, 255, 0);
-    }
-}
 
 // Clear CAN terminal
 void ui_clear_can_terminal(void)
