@@ -81,7 +81,7 @@ static const char *DISPLAY_TAG = "example";
 #define EXAMPLE_LVGL_TASK_MAX_DELAY_MS 500
 #define EXAMPLE_LVGL_TASK_MIN_DELAY_MS 1
 #define EXAMPLE_LVGL_TASK_STACK_SIZE   (4 * 1024)
-#define EXAMPLE_LVGL_TASK_PRIORITY     2
+#define EXAMPLE_LVGL_TASK_PRIORITY     6
 
 static SemaphoreHandle_t lvgl_mux = NULL;
 
