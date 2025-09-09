@@ -10,7 +10,6 @@ extern "C" {
 
 // SCREEN: ui_Screen3
 extern void ui_Screen3_screen_init(void);
-extern void ui_Screen3_screen_destroy(void);
 extern lv_obj_t * ui_Screen3;
 
 // CAN Bus Terminal Objects
@@ -18,15 +17,9 @@ extern void * ui_TextArea_CAN_Terminal;
 extern void * ui_Label_CAN_Status;
 extern void * ui_Label_CAN_Count;
 
-// Touch cursor object
-extern lv_obj_t * ui_Touch_Cursor_Screen3;
-
 // Functions for updating CAN terminal
 extern void ui_add_can_message(const char* message);
 extern void ui_update_can_status(int connected, int message_count);
-
-// Touch cursor update function for Screen3
-extern void ui_update_touch_cursor_screen3(void * point);
 
 // New advanced CAN Terminal functions
 extern void ui_clear_can_terminal(void);

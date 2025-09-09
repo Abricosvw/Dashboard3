@@ -34,7 +34,6 @@ extern bool touch_active;
 
 // UI INIT
 void ui_init(void);
-void ui_destroy(void);
 
 #ifdef __cplusplus
 } /*extern "C"*/

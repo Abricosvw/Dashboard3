@@ -11,32 +11,10 @@
 // Screen object
 lv_obj_t * ui_Screen4;
 
-// Touch cursor object
-lv_obj_t * ui_Touch_Cursor_Screen4;
-
 // Function prototypes
-static void screen4_touch_handler(lv_event_t * e);
 static void swipe_handler_screen4(lv_event_t * e);
 static void screen4_prev_screen_btn_event_cb(lv_event_t * e);
 static void screen4_next_screen_btn_event_cb(lv_event_t * e);
-
-// Touch handler for general touch events
-static void screen4_touch_handler(lv_event_t * e) {
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (code == LV_EVENT_PRESSED) {
-        // Show touch cursor at touch point
-        lv_point_t point;
-        lv_indev_t * indev = lv_indev_get_act();
-        if (indev) {
-            lv_indev_get_point(indev, &point);
-            ui_update_touch_cursor_screen4(&point);
-        }
-    } else if (code == LV_EVENT_RELEASED) {
-        // Hide touch cursor
-        lv_obj_add_flag((lv_obj_t*)ui_Touch_Cursor_Screen4, LV_OBJ_FLAG_HIDDEN);
-    }
-}
 
 // Swipe handler for screen switching
 static void swipe_handler_screen4(lv_event_t * e) {
@@ -85,14 +63,6 @@ static void screen4_next_screen_btn_event_cb(lv_event_t * e) {
     if (code == LV_EVENT_CLICKED) {
         // Switch to next enabled screen (forward direction)
         ui_switch_to_next_enabled_screen(true);
-    }
-}
-
-// Touch cursor update function for Screen4
-void ui_update_touch_cursor_screen4(lv_point_t * point) {
-    if (ui_Touch_Cursor_Screen4 && point) {
-        lv_obj_set_pos(ui_Touch_Cursor_Screen4, point->x - 10, point->y - 10);
-        lv_obj_clear_flag(ui_Touch_Cursor_Screen4, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
@@ -166,27 +136,9 @@ void ui_Screen4_screen_init(void) {
     lv_obj_set_style_text_font(next_label, &lv_font_montserrat_12, 0);
     lv_obj_align_to(next_label, next_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
 
-    // Touch cursor
-    ui_Touch_Cursor_Screen4 = lv_obj_create(ui_Screen4);
-    lv_obj_set_size(ui_Touch_Cursor_Screen4, 20, 20);
-    lv_obj_set_style_bg_color(ui_Touch_Cursor_Screen4, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(ui_Touch_Cursor_Screen4, 10, 0);
-    lv_obj_add_flag(ui_Touch_Cursor_Screen4, LV_OBJ_FLAG_HIDDEN);
-
     // Add event handlers
-    lv_obj_add_event_cb(ui_Screen4, screen4_touch_handler, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_Screen4, screen4_touch_handler, LV_EVENT_RELEASED, NULL);
     lv_obj_add_event_cb(ui_Screen4, swipe_handler_screen4, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen4, swipe_handler_screen4, LV_EVENT_RELEASED, NULL);
 
     ESP_LOGI("SCREEN4", "Screen 4 initialized as clean empty screen");
-}
-
-// Screen destroy function
-void ui_Screen4_screen_destroy(void) {
-    if (ui_Screen4) {
-        lv_obj_del(ui_Screen4);
-        ui_Screen4 = NULL;
-    }
-    ESP_LOGI("SCREEN4", "Screen 4 destroyed");
 }

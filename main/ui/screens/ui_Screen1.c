@@ -19,8 +19,6 @@ lv_obj_t * ui_Arc_Boost = NULL;
 lv_obj_t * ui_LED_TCU = NULL;
 lv_obj_t * ui_Label_TCU_Status = NULL;
 
-// Touch cursor for Screen 1
-lv_obj_t * ui_Touch_Cursor_Screen1 = NULL;
 
 lv_obj_t * ui_Label_MAP_Value = NULL;
 lv_obj_t * ui_Label_Wastegate_Value = NULL;
@@ -292,19 +290,9 @@ void ui_Screen1_screen_init(void)
         lv_anim_start(&anim_boost);
     }
     
-    // Create touch cursor for Screen 1
-    ui_Touch_Cursor_Screen1 = lv_obj_create(ui_Screen1);
-    lv_obj_set_size(ui_Touch_Cursor_Screen1, 30, 30);
-    lv_obj_set_style_bg_color(ui_Touch_Cursor_Screen1, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(ui_Touch_Cursor_Screen1, 15, 0);
-    lv_obj_set_style_opa(ui_Touch_Cursor_Screen1, 0, 0); // Initially hidden
-    lv_obj_add_flag(ui_Touch_Cursor_Screen1, LV_OBJ_FLAG_HIDDEN);
     
     // Touch gauges functionality removed - no longer needed
     
-    // Add touch event handlers for basic touch functionality
-    lv_obj_add_event_cb(ui_Screen1, general_touch_handler, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_Screen1, general_touch_handler, LV_EVENT_RELEASED, NULL);
     
     // Add swipe functionality for screen switching
     lv_obj_add_event_cb(ui_Screen1, swipe_handler_screen1, LV_EVENT_PRESSED, NULL);
@@ -415,44 +403,7 @@ static void swipe_handler_screen1(lv_event_t * e)
     }
 }
 
-// Touch cursor update function for Screen1
-void ui_update_touch_cursor(lv_point_t * point) {
-    printf("Touch cursor Screen1 update called: x=%d, y=%d\n", point->x, point->y);
-    
-    if (ui_Touch_Cursor_Screen1 && point) {
-        // Move cursor to touch position
-        lv_obj_set_pos(ui_Touch_Cursor_Screen1, point->x - 15, point->y - 15);
-        
-        // Make cursor visible
-        lv_obj_clear_flag(ui_Touch_Cursor_Screen1, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_set_style_opa(ui_Touch_Cursor_Screen1, 255, 0);
-        
-        printf("Cursor Screen1 made visible at x=%d, y=%d\n", point->x - 15, point->y - 15);
-        
-        // Start fade out animation
-        lv_anim_t fade_anim;
-        lv_anim_init(&fade_anim);
-        lv_anim_set_var(&fade_anim, ui_Touch_Cursor_Screen1);
-        lv_anim_set_values(&fade_anim, 255, 0);
-        lv_anim_set_time(&fade_anim, 500);
-        lv_anim_set_exec_cb(&fade_anim, fade_anim_cb_screen1);
-        lv_anim_set_ready_cb(&fade_anim, fade_ready_cb_screen1);
-        lv_anim_start(&fade_anim);
-    } else {
-        printf("Touch cursor Screen1 update failed: cursor=%p, point=%p\n", ui_Touch_Cursor_Screen1, point);
-    }
-}
-
 // Splash screen animation callbacks - REMOVED UNUSED FUNCTIONS
-
-// Animation callbacks for touch cursor
-static void fade_anim_cb_screen1(void * var, int32_t v) {
-    lv_obj_set_style_opa((lv_obj_t*)var, v, 0);
-}
-
-static void fade_ready_cb_screen1(lv_anim_t * a) {
-    lv_obj_add_flag((lv_obj_t*)a->var, LV_OBJ_FLAG_HIDDEN);
-}
 
 // Function to control animations based on demo mode
 void ui_Screen1_update_animations(bool demo_enabled)
@@ -559,8 +510,3 @@ void ui_Screen1_update_arc_visibility(int arc_index, bool visible)
     }
 }
 
-void ui_Screen1_screen_destroy(void)
-{
-    if(ui_Screen1) lv_obj_del(ui_Screen1);
-    ui_Screen1 = NULL;
-}

@@ -33,9 +33,6 @@ lv_obj_t * ui_Label_Battery_Voltage_Value = NULL; // Вернули Battery labe
 
 
 
-// Touch cursor objects
-lv_obj_t * ui_Touch_Cursor_Screen2 = NULL;
-static lv_point_t last_touch_point_screen2 = {0, 0};
 
 // Animation objects
 static lv_anim_t anim_oil_pressure;
@@ -46,45 +43,6 @@ static lv_anim_t anim_battery_voltage; // Вернули Battery анимаци�
 
 
 
-// Touch cursor update function for Screen2
-void ui_update_touch_cursor_screen2(lv_point_t * point) {
-    ESP_LOGI("TOUCH_CURSOR", "Touch cursor Screen2 update called: x=%d, y=%d", point->x, point->y);
-    
-    if (ui_Touch_Cursor_Screen2 && point) {
-        last_touch_point_screen2.x = point->x;
-        last_touch_point_screen2.y = point->y;
-        
-        // Move cursor to touch position
-        lv_obj_set_pos(ui_Touch_Cursor_Screen2, point->x - 15, point->y - 15);
-        
-        // Make cursor visible
-        lv_obj_clear_flag(ui_Touch_Cursor_Screen2, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_set_style_opa(ui_Touch_Cursor_Screen2, 255, 0);
-        
-        ESP_LOGI("TOUCH_CURSOR", "Cursor Screen2 made visible at x=%d, y=%d", point->x - 15, point->y - 15);
-        
-        // Start fade out animation
-        lv_anim_t fade_anim;
-        lv_anim_init(&fade_anim);
-        lv_anim_set_var(&fade_anim, ui_Touch_Cursor_Screen2);
-        lv_anim_set_values(&fade_anim, 255, 0);
-        lv_anim_set_time(&fade_anim, 500);
-        lv_anim_set_exec_cb(&fade_anim, fade_anim_cb_screen2);
-        lv_anim_set_ready_cb(&fade_anim, fade_ready_cb_screen2);
-        lv_anim_start(&fade_anim);
-    } else {
-        ESP_LOGE("TOUCH_CURSOR", "Cursor Screen2 object is NULL or point is NULL!");
-    }
-}
-
-// Animation callbacks for touch cursor
-static void fade_anim_cb_screen2(void * var, int32_t v) {
-    lv_obj_set_style_opa((lv_obj_t*)var, v, 0);
-}
-
-static void fade_ready_cb_screen2(lv_anim_t * a) {
-    lv_obj_add_flag((lv_obj_t*)a->var, LV_OBJ_FLAG_HIDDEN);
-}
 
 static void anim_value_cb(void * var, int32_t v)
 {
@@ -206,20 +164,6 @@ void ui_Screen2_screen_init(void)
     
 
     
-    // Initialize touch cursor for Screen 2
-    ui_Touch_Cursor_Screen2 = lv_obj_create(ui_Screen2);
-    lv_obj_set_size(ui_Touch_Cursor_Screen2, 30, 30);
-    lv_obj_set_style_bg_color(ui_Touch_Cursor_Screen2, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(ui_Touch_Cursor_Screen2, 15, 0);
-    lv_obj_set_style_opa(ui_Touch_Cursor_Screen2, 0, 0); // Initially hidden
-    lv_obj_add_flag(ui_Touch_Cursor_Screen2, LV_OBJ_FLAG_HIDDEN);
-    
-    // Add touch functionality to all gauges (5 датчиков)
-    // Touch gauges functionality removed - no longer needed
-    
-    // Add touch event handlers for basic touch functionality
-    lv_obj_add_event_cb(ui_Screen2, general_touch_handler, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_Screen2, general_touch_handler, LV_EVENT_RELEASED, NULL);
     
     // Add swipe functionality for screen switching
     lv_obj_add_event_cb(ui_Screen2, swipe_handler_screen2, LV_EVENT_PRESSED, NULL);
@@ -484,10 +428,5 @@ static void swipe_handler_screen2(lv_event_t * e)
     }
 }
 
-void ui_Screen2_screen_destroy(void)
-{
-    if(ui_Screen2) lv_obj_del(ui_Screen2);
-    ui_Screen2 = NULL;
-}
 
 
