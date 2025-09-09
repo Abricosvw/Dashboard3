@@ -25,14 +25,14 @@ void _ui_screen_change(lv_obj_t ** target, lv_scr_load_anim_t fademode, int spd,
 {
     if(*target == NULL)
         target_init();
-    lv_scr_load_anim(*target, fademode, spd, delay, false);
+    lv_scr_load_anim(*target, fademode, spd, delay, true);
 }
 
 void _ui_screen_delete(lv_obj_t ** target)
 {
-    if(*target == NULL) {
+    if(*target != NULL) {
         lv_obj_del(*target);
-        target = NULL;
+        *target = NULL;
     }
 }
 
