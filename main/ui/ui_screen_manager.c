@@ -4,6 +4,7 @@
 #include "lvgl.h"
 #include "screens/ui_Screen3.h"
 #include "screens/ui_Screen4.h"
+#include "screens/ui_Screen5.h"
 #include "screens/ui_Screen6.h"
 #include "settings_config.h"
 #include "esp_log.h"
@@ -52,6 +53,7 @@ static bool ui_is_screen_enabled(screen_id_t screen_id)
         case SCREEN_1:
         case SCREEN_2:
         case SCREEN_4:
+        case SCREEN_5:
         case SCREEN_6:
             return true; // These screens are always enabled
         case SCREEN_3:
@@ -64,7 +66,7 @@ static bool ui_is_screen_enabled(screen_id_t screen_id)
 // Get next enabled screen in specified direction
 screen_id_t ui_get_next_enabled_screen(screen_id_t current_screen, bool forward)
 {
-    screen_id_t screens[] = {SCREEN_1, SCREEN_2, SCREEN_3, SCREEN_4, SCREEN_6};
+    screen_id_t screens[] = {SCREEN_1, SCREEN_2, SCREEN_3, SCREEN_4, SCREEN_5, SCREEN_6};
     int num_screens = sizeof(screens) / sizeof(screens[0]);
     int current_index = -1;
 
@@ -184,6 +186,12 @@ void ui_switch_to_screen(screen_id_t screen_id)
             lv_scr_load(ui_Screen4);
             current_screen = SCREEN_4;
             ESP_LOGI("SCREEN_MANAGER", "Switched to SCREEN_4");
+            break;
+
+        case SCREEN_5:
+            lv_scr_load(ui_Screen5);
+            current_screen = SCREEN_5;
+            ESP_LOGI("SCREEN_MANAGER", "Switched to SCREEN_5");
             break;
 
         case SCREEN_6:

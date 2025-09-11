@@ -41,6 +41,7 @@
 
 // --- ДОБАВЛЕНО: Подключаем модуль фоновой задачи ---
 #include "background_task.h"
+#include "serial_reader.h"
 
 static const char *TAG = "ECU_DASHBOARD";
 
@@ -135,6 +136,10 @@ void app_main(void)
         ESP_LOGE(TAG, "Failed to initialize CAN bus: %s", esp_err_to_name(can_ret));
     }
     
+    // Initialize Serial Reader task for MRE data
+    ESP_LOGI(TAG, "Initializing Serial Reader task...");
+    serial_reader_task_init();
+
     /* Initialize display and UI */
     display();
 

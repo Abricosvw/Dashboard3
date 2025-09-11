@@ -19,12 +19,65 @@ extern "C" {
 #include "screens/ui_Screen2.h"
 #include "screens/ui_Screen3.h"
 #include "screens/ui_Screen4.h"
+#include "screens/ui_Screen5.h"
 #include "screens/ui_Screen6.h"
+#include "ui_updates.h"
 
 ///////////////////// SETTINGS ////////////////////
 #include "settings_config.h"
 
 ///////////////////// VARIABLES ////////////////////
+// SCREEN 1
+extern lv_obj_t * ui_Screen1;
+extern lv_obj_t * ui_Arc_MAP;
+extern lv_obj_t * ui_Arc_Wastegate;
+extern lv_obj_t * ui_Arc_TPS;
+extern lv_obj_t * ui_Arc_RPM;
+extern lv_obj_t * ui_Arc_Boost;
+extern lv_obj_t * ui_LED_TCU;
+extern lv_obj_t * ui_Label_TCU_Status;
+extern lv_obj_t * ui_Label_MAP_Value;
+extern lv_obj_t * ui_Label_Wastegate_Value;
+extern lv_obj_t * ui_Label_TPS_Value;
+extern lv_obj_t * ui_Label_RPM_Value;
+extern lv_obj_t * ui_Label_Boost_Value;
+
+// SCREEN 2
+extern lv_obj_t * ui_Screen2;
+extern lv_obj_t * ui_Arc_Oil_Pressure;
+extern lv_obj_t * ui_Arc_Oil_Temp;
+extern lv_obj_t * ui_Arc_Water_Temp;
+extern lv_obj_t * ui_Arc_Fuel_Pressure;
+extern lv_obj_t * ui_Arc_Battery_Voltage;
+extern lv_obj_t * ui_Label_Oil_Pressure_Value;
+extern lv_obj_t * ui_Label_Oil_Temp_Value;
+extern lv_obj_t * ui_Label_Water_Temp_Value;
+extern lv_obj_t * ui_Label_Fuel_Pressure_Value;
+extern lv_obj_t * ui_Label_Battery_Voltage_Value;
+
+// SCREEN 4
+extern lv_obj_t * ui_Screen4;
+extern lv_obj_t * ui_Arc_Abs_TPS;
+extern lv_obj_t * ui_Arc_WG_Pos;
+extern lv_obj_t * ui_Arc_BOV;
+extern lv_obj_t * ui_Arc_TCU_TQ_Req;
+extern lv_obj_t * ui_Arc_TCU_TQ_Act;
+extern lv_obj_t * ui_Arc_Eng_TQ_Req;
+extern lv_obj_t * ui_Label_Abs_TPS_Value;
+extern lv_obj_t * ui_Label_WG_Pos_Value;
+extern lv_obj_t * ui_Label_BOV_Value;
+extern lv_obj_t * ui_Label_TCU_TQ_Req_Value;
+extern lv_obj_t * ui_Label_TCU_TQ_Act_Value;
+extern lv_obj_t * ui_Label_Eng_TQ_Req_Value;
+
+// SCREEN 5
+extern lv_obj_t * ui_Screen5;
+extern lv_obj_t * ui_Arc_Eng_TQ_Act;
+extern lv_obj_t * ui_Arc_Limit_TQ;
+extern lv_obj_t * ui_Arc_PID_Corr;
+extern lv_obj_t * ui_Label_Eng_TQ_Act_Value;
+extern lv_obj_t * ui_Label_Limit_TQ_Value;
+extern lv_obj_t * ui_Label_PID_Corr_Value;
 
 // EVENTS
 extern lv_obj_t * ui____initial_actions0;

@@ -1,35 +1,29 @@
-// ECU Dashboard Screen 4 - MRE Data Gauges (Page 1)
+// ECU Dashboard Screen 5 - MRE Data Gauges (Page 2)
 #include "../ui.h"
-#include "ui_Screen4.h"
+#include "ui_Screen5.h"
 #include "ui_screen_manager.h"
 #include "ui_helpers.h"
 #include <stdio.h>
 #include <esp_log.h>
 
 // Screen object
-lv_obj_t * ui_Screen4;
+lv_obj_t * ui_Screen5;
 
 // MRE Gauge Objects
-lv_obj_t * ui_Arc_Abs_TPS;
-lv_obj_t * ui_Arc_WG_Pos;
-lv_obj_t * ui_Arc_BOV;
-lv_obj_t * ui_Arc_TCU_TQ_Req;
-lv_obj_t * ui_Arc_TCU_TQ_Act;
-lv_obj_t * ui_Arc_Eng_TQ_Req;
+lv_obj_t * ui_Arc_Eng_TQ_Act;
+lv_obj_t * ui_Arc_Limit_TQ;
+lv_obj_t * ui_Arc_PID_Corr;
 
 // MRE Label Objects
-lv_obj_t * ui_Label_Abs_TPS_Value;
-lv_obj_t * ui_Label_WG_Pos_Value;
-lv_obj_t * ui_Label_BOV_Value;
-lv_obj_t * ui_Label_TCU_TQ_Req_Value;
-lv_obj_t * ui_Label_TCU_TQ_Act_Value;
-lv_obj_t * ui_Label_Eng_TQ_Req_Value;
+lv_obj_t * ui_Label_Eng_TQ_Act_Value;
+lv_obj_t * ui_Label_Limit_TQ_Value;
+lv_obj_t * ui_Label_PID_Corr_Value;
 
 
 // Function prototypes
-static void swipe_handler_screen4(lv_event_t * e);
-static void screen4_prev_screen_btn_event_cb(lv_event_t * e);
-static void screen4_next_screen_btn_event_cb(lv_event_t * e);
+static void swipe_handler_screen5(lv_event_t * e);
+static void screen5_prev_screen_btn_event_cb(lv_event_t * e);
+static void screen5_next_screen_btn_event_cb(lv_event_t * e);
 
 // Helper function to create a gauge
 static void create_gauge(lv_obj_t * parent, lv_obj_t ** arc, lv_obj_t ** label,
@@ -82,73 +76,64 @@ static void create_gauge(lv_obj_t * parent, lv_obj_t ** arc, lv_obj_t ** label,
 
 
 // Main screen initialization
-void ui_Screen4_screen_init(void) {
-    ui_Screen4 = lv_obj_create(NULL);
-    lv_obj_set_size(ui_Screen4, 800, 480);
-    lv_obj_set_pos(ui_Screen4, 0, 0);
-    lv_obj_clear_flag(ui_Screen4, LV_OBJ_FLAG_SCROLLABLE);
-    lv_obj_set_style_bg_color(ui_Screen4, lv_color_hex(0x1a1a1a), 0);
+void ui_Screen5_screen_init(void) {
+    ui_Screen5 = lv_obj_create(NULL);
+    lv_obj_set_size(ui_Screen5, 800, 480);
+    lv_obj_set_pos(ui_Screen5, 0, 0);
+    lv_obj_clear_flag(ui_Screen5, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(ui_Screen5, lv_color_hex(0x1a1a1a), 0);
 
     // Title
-    lv_obj_t * title_label = lv_label_create(ui_Screen4);
-    lv_label_set_text(title_label, "MRE Data (Page 1)");
+    lv_obj_t * title_label = lv_label_create(ui_Screen5);
+    lv_label_set_text(title_label, "MRE Data (Page 2)");
     lv_obj_set_style_text_color(title_label, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_text_font(title_label, &lv_font_montserrat_24, 0);
     lv_obj_align(title_label, LV_ALIGN_TOP_MID, 0, 10);
 
-    // Create gauges in 3x2 grid
-    create_gauge(ui_Screen4, &ui_Arc_Abs_TPS, &ui_Label_Abs_TPS_Value,
-                "Absolute TPS", "%", lv_color_hex(0x00D4FF), 0, 100, 15, 60);
+    // Create gauges in top row
+    create_gauge(ui_Screen5, &ui_Arc_Eng_TQ_Act, &ui_Label_Eng_TQ_Act_Value,
+                "Eng Tq Act", "Nm", lv_color_hex(0x00D4FF), 0, 500, 15, 60);
 
-    create_gauge(ui_Screen4, &ui_Arc_WG_Pos, &ui_Label_WG_Pos_Value,
-                "Wastegate Pos", "%", lv_color_hex(0x00FF88), 0, 100, 285, 60);
+    create_gauge(ui_Screen5, &ui_Arc_Limit_TQ, &ui_Label_Limit_TQ_Value,
+                "Limit Tq", "Nm", lv_color_hex(0x00FF88), 0, 500, 285, 60);
 
-    create_gauge(ui_Screen4, &ui_Arc_BOV, &ui_Label_BOV_Value,
-                "BOV", "%", lv_color_hex(0xFFD700), 0, 100, 545, 60);
-
-    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Req, &ui_Label_TCU_TQ_Req_Value,
-                "TCU Tq Req", "Nm", lv_color_hex(0xFF6B35), 0, 500, 15, 290);
-
-    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Act, &ui_Label_TCU_TQ_Act_Value,
-                "TCU Tq Act", "Nm", lv_color_hex(0xFF3366), 0, 500, 285, 290);
-
-    create_gauge(ui_Screen4, &ui_Arc_Eng_TQ_Req, &ui_Label_Eng_TQ_Req_Value,
-                "Eng Tq Req", "Nm", lv_color_hex(0x8A2BE2), 0, 500, 545, 290);
+    create_gauge(ui_Screen5, &ui_Arc_PID_Corr, &ui_Label_PID_Corr_Value,
+                "PID Corr", "", lv_color_hex(0xFFD700), -100, 100, 545, 60);
 
 
     // Navigation buttons
-    lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen4);
+    lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen5);
     lv_obj_set_size(prev_screen_btn, 50, 50);
     lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
     lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_radius(prev_screen_btn, 25, 0);
-    lv_obj_add_event_cb(prev_screen_btn, screen4_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(prev_screen_btn, screen5_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
     lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
     lv_obj_center(prev_icon);
 
-    lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen4);
+    lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen5);
     lv_obj_set_size(next_screen_btn, 50, 50);
     lv_obj_align(next_screen_btn, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
     lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_radius(next_screen_btn, 25, 0);
-    lv_obj_add_event_cb(next_screen_btn, screen4_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(next_screen_btn, screen5_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t * next_icon = lv_label_create(next_screen_btn);
     lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
     lv_obj_center(next_icon);
 
     // Add event handlers
-    lv_obj_add_event_cb(ui_Screen4, swipe_handler_screen4, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_Screen4, swipe_handler_screen4, LV_EVENT_RELEASED, NULL);
+    lv_obj_add_event_cb(ui_Screen5, swipe_handler_screen5, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_Screen5, swipe_handler_screen5, LV_EVENT_RELEASED, NULL);
 
-    ESP_LOGI("SCREEN4", "Screen 4 initialized with MRE gauges");
+    ESP_LOGI("SCREEN5", "Screen 5 initialized with MRE gauges");
 }
 
 
 // Swipe handler for screen switching
-static void swipe_handler_screen4(lv_event_t * e) {
+static void swipe_handler_screen5(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
     static lv_point_t start_point;
     static int is_swiping = 0;
@@ -178,14 +163,14 @@ static void swipe_handler_screen4(lv_event_t * e) {
 }
 
 // Previous screen button event callback
-static void screen4_prev_screen_btn_event_cb(lv_event_t * e) {
+static void screen5_prev_screen_btn_event_cb(lv_event_t * e) {
     if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
         ui_switch_to_next_enabled_screen(false);
     }
 }
 
 // Next screen button event callback
-static void screen4_next_screen_btn_event_cb(lv_event_t * e) {
+static void screen5_next_screen_btn_event_cb(lv_event_t * e) {
     if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
         ui_switch_to_next_enabled_screen(true);
     }
