@@ -55,11 +55,18 @@ static void background_task_worker(void *pvParameters)
                             result = nvs_set_blob(nvs_handle, nvs_op->key, nvs_op->value, nvs_op->size);
                             if (result == ESP_OK) {
                                 result = nvs_commit(nvs_handle);
+                                if (result != ESP_OK) {
+                                    ESP_LOGE(TAG, "NVS commit failed: %s", esp_err_to_name(result));
+                                }
+                            } else {
+                                ESP_LOGE(TAG, "NVS set_blob failed: %s", esp_err_to_name(result));
                             }
                             nvs_close(nvs_handle);
+                        } else {
+                            ESP_LOGE(TAG, "NVS open failed: %s", esp_err_to_name(result));
                         }
 
-                        // Освобождаем память, выделенную в background_nvs_save_async
+                        // Free the memory that was allocated in background_nvs_save_async
                         free(nvs_op->value);
                         free(nvs_op);
                     }
@@ -143,14 +150,15 @@ esp_err_t background_task_init(void)
         return ESP_ERR_NO_MEM;
     }
 
-    // Создание фоновой задачи
-    BaseType_t ret = xTaskCreate(
+    // Создание фоновой задачи и привязка к ядру 1
+    BaseType_t ret = xTaskCreatePinnedToCore(
         background_task_worker,
         "bg_worker",
         BACKGROUND_TASK_STACK_SIZE,
         NULL,
         BACKGROUND_TASK_PRIORITY,
-        &background_task_handle
+        &background_task_handle,
+        1 // Pin to Core 1
     );
 
     if (ret != pdPASS) {
