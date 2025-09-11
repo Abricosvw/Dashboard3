@@ -12,6 +12,9 @@
 #include "../background_task.h"  // Фоновая задача для асинхронных операций
 #include <stdio.h>
 #include <string.h>
+#include <esp_system.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include <stdbool.h>
 #include <esp_log.h>
 
@@ -291,6 +294,10 @@ void ui_save_device_settings(void)
 {
     ESP_LOGI("SCREEN6", "Saving device settings to NVS");
     ui_Screen6_save_settings();
+
+    ESP_LOGI("SCREEN6", "Settings saved, restarting in 2 seconds...");
+    vTaskDelay(pdMS_TO_TICKS(2000));
+    esp_restart();
 }
 
 // =================================================================
