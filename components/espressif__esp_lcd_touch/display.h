@@ -24,8 +24,8 @@
 #include "esp_rom_sys.h"
 #include "lvgl.h"
 #include "ui/ui.h"
-#include "main/include/serial_reader.h" // For mre_data_queue
-#include "main/include/mre_parser.h"    // For mre_data_t and update function
+#include "serial_reader.h" // For mre_data_queue
+#include "mre_parser.h"    // For mre_data_t and update function
 
 #define I2C_MASTER_SCL_IO           9       /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           8       /*!< GPIO number used for I2C master data  */
