@@ -10,7 +10,7 @@
 lv_obj_t * ui_Screen4;
 
 // MRE Gauge Objects
-lv_obj_t * ui_Arc_Abs_TPS;
+lv_obj_t * ui_Arc_Abs_Pedal;
 lv_obj_t * ui_Arc_WG_Pos;
 lv_obj_t * ui_Arc_BOV;
 lv_obj_t * ui_Arc_TCU_TQ_Req;
@@ -18,7 +18,7 @@ lv_obj_t * ui_Arc_TCU_TQ_Act;
 lv_obj_t * ui_Arc_Eng_TQ_Req;
 
 // MRE Label Objects
-lv_obj_t * ui_Label_Abs_TPS_Value;
+lv_obj_t * ui_Label_Abs_Pedal_Value;
 lv_obj_t * ui_Label_WG_Pos_Value;
 lv_obj_t * ui_Label_BOV_Value;
 lv_obj_t * ui_Label_TCU_TQ_Req_Value;
@@ -89,41 +89,25 @@ void ui_Screen4_screen_init(void) {
     lv_obj_clear_flag(ui_Screen4, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(ui_Screen4, lv_color_hex(0x1a1a1a), 0);
 
-    // Title
     lv_obj_t * title_label = lv_label_create(ui_Screen4);
-    lv_label_set_text(title_label, "MRE Data (Page 1)");
+    lv_label_set_text(title_label, "ECU Data (Page 1)");
     lv_obj_set_style_text_color(title_label, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_text_font(title_label, &lv_font_montserrat_24, 0);
     lv_obj_align(title_label, LV_ALIGN_TOP_MID, 0, 10);
 
-    // Create gauges in 3x2 grid
-    create_gauge(ui_Screen4, &ui_Arc_Abs_TPS, &ui_Label_Abs_TPS_Value,
-                "Absolute TPS", "%", lv_color_hex(0x00D4FF), 0, 100, 15, 60);
+    create_gauge(ui_Screen4, &ui_Arc_Abs_Pedal, &ui_Label_Abs_Pedal_Value, "Abs. Pedal Pos", "%", lv_color_hex(0x00D4FF), 0, 100, 15, 60);
+    create_gauge(ui_Screen4, &ui_Arc_WG_Pos, &ui_Label_WG_Pos_Value, "Wastegate Pos", "%", lv_color_hex(0x00FF88), 0, 100, 285, 60);
+    create_gauge(ui_Screen4, &ui_Arc_BOV, &ui_Label_BOV_Value, "BOV", "%", lv_color_hex(0xFFD700), 0, 100, 545, 60);
+    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Req, &ui_Label_TCU_TQ_Req_Value, "TCU Tq Req", "Nm", lv_color_hex(0xFF6B35), 0, 500, 15, 290);
+    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Act, &ui_Label_TCU_TQ_Act_Value, "TCU Tq Act", "Nm", lv_color_hex(0xFF3366), 0, 500, 285, 290);
+    create_gauge(ui_Screen4, &ui_Arc_Eng_TQ_Req, &ui_Label_Eng_TQ_Req_Value, "Eng Tq Req", "Nm", lv_color_hex(0x8A2BE2), 0, 500, 545, 290);
 
-    create_gauge(ui_Screen4, &ui_Arc_WG_Pos, &ui_Label_WG_Pos_Value,
-                "Wastegate Pos", "%", lv_color_hex(0x00FF88), 0, 100, 285, 60);
-
-    create_gauge(ui_Screen4, &ui_Arc_BOV, &ui_Label_BOV_Value,
-                "BOV", "%", lv_color_hex(0xFFD700), 0, 100, 545, 60);
-
-    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Req, &ui_Label_TCU_TQ_Req_Value,
-                "TCU Tq Req", "Nm", lv_color_hex(0xFF6B35), 0, 500, 15, 290);
-
-    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Act, &ui_Label_TCU_TQ_Act_Value,
-                "TCU Tq Act", "Nm", lv_color_hex(0xFF3366), 0, 500, 285, 290);
-
-    create_gauge(ui_Screen4, &ui_Arc_Eng_TQ_Req, &ui_Label_Eng_TQ_Req_Value,
-                "Eng Tq Req", "Nm", lv_color_hex(0x8A2BE2), 0, 500, 545, 290);
-
-
-    // Navigation buttons
     lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen4);
     lv_obj_set_size(prev_screen_btn, 50, 50);
     lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
     lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_radius(prev_screen_btn, 25, 0);
     lv_obj_add_event_cb(prev_screen_btn, screen4_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-
     lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
     lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
     lv_obj_center(prev_icon);
@@ -134,59 +118,34 @@ void ui_Screen4_screen_init(void) {
     lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_radius(next_screen_btn, 25, 0);
     lv_obj_add_event_cb(next_screen_btn, screen4_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-
     lv_obj_t * next_icon = lv_label_create(next_screen_btn);
     lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
     lv_obj_center(next_icon);
 
-    // Add event handlers
     lv_obj_add_event_cb(ui_Screen4, swipe_handler_screen4, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen4, swipe_handler_screen4, LV_EVENT_RELEASED, NULL);
 
-    ESP_LOGI("SCREEN4", "Screen 4 initialized with MRE gauges");
+    ESP_LOGI("SCREEN4", "Screen 4 initialized with ECU gauges");
 }
 
-
-// Swipe handler for screen switching
 static void swipe_handler_screen4(lv_event_t * e) {
     lv_event_code_t code = lv_event_get_code(e);
     static lv_point_t start_point;
-    static int is_swiping = 0;
-
     if (code == LV_EVENT_PRESSED) {
-        lv_indev_t * indev = lv_indev_get_act();
-        if (indev) {
-            lv_indev_get_point(indev, &start_point);
-            is_swiping = 1;
-        }
-    } else if (code == LV_EVENT_RELEASED && is_swiping != 0) {
+        lv_indev_get_point(lv_indev_get_act(), &start_point);
+    } else if (code == LV_EVENT_RELEASED) {
         lv_point_t end_point;
-        lv_indev_t * indev = lv_indev_get_act();
-        if (indev) {
-            lv_indev_get_point(indev, &end_point);
-            int delta_x = end_point.x - start_point.x;
-
-            if (delta_x > 50) {
-                ui_switch_to_next_enabled_screen(false);
-            }
-            else if (delta_x < -50) {
-                ui_switch_to_next_enabled_screen(true);
-            }
-        }
-        is_swiping = 0;
+        lv_indev_get_point(lv_indev_get_act(), &end_point);
+        lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
+        if (dir == LV_DIR_LEFT) ui_switch_to_next_enabled_screen(true);
+        if (dir == LV_DIR_RIGHT) ui_switch_to_next_enabled_screen(false);
     }
 }
 
-// Previous screen button event callback
 static void screen4_prev_screen_btn_event_cb(lv_event_t * e) {
-    if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
-        ui_switch_to_next_enabled_screen(false);
-    }
+    if (lv_event_get_code(e) == LV_EVENT_CLICKED) ui_switch_to_next_enabled_screen(false);
 }
 
-// Next screen button event callback
 static void screen4_next_screen_btn_event_cb(lv_event_t * e) {
-    if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
-        ui_switch_to_next_enabled_screen(true);
-    }
+    if (lv_event_get_code(e) == LV_EVENT_CLICKED) ui_switch_to_next_enabled_screen(true);
 }

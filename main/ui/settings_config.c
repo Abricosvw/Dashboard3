@@ -140,9 +140,15 @@ void trigger_settings_save(void) {
                                              settings_save_callback, NULL);
 
     if (ret != ESP_OK) {
-        // Если не удалось добавить в очередь, просто логируем ошибку.
-        // UI не должен блокироваться.
-        ESP_LOGE(TAG, "Failed to queue settings save task: %s", esp_err_to_name(ret));
+        if (ret == ESP_ERR_TIMEOUT) {
+            ESP_LOGW(TAG, "Background queue full, settings not saved. Try again later.");
+        } else {
+            ESP_LOGE(TAG, "Failed to queue settings save task: %s", esp_err_to_name(ret));
+            // Fallback только для критических ошибок, но не для переполнения очереди
+            if (ret != ESP_ERR_TIMEOUT) {
+                settings_save_to_nvs();
+            }
+        }
     } else {
         ESP_LOGI(TAG, "Settings save queued for background processing");
     }

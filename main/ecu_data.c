@@ -69,61 +69,36 @@ ecu_data_t* ecu_data_get(void)
     return &g_ecu_data; // For now, return direct pointer (should be protected by mutex in caller)
 }
 
+// Get a thread-safe copy of the current ECU data
+void ecu_data_get_copy(ecu_data_t *data_copy)
+{
+    if (!data_copy || !ecu_data_mutex) return;
+
+    if (xSemaphoreTake(ecu_data_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+        memcpy(data_copy, &g_ecu_data, sizeof(ecu_data_t));
+        xSemaphoreGive(ecu_data_mutex);
+    }
+}
+
 // Convert ECU data to JSON string
 char* ecu_data_to_json(const ecu_data_t *data)
 {
-    static char json_buffer[512];
-
-    if (!data) return "{}";
-
-    snprintf(json_buffer, sizeof(json_buffer),
-        "{\"map_pressure\":%.1f,\"wastegate_position\":%.1f,\"tps_position\":%.1f,"
-        "\"engine_rpm\":%.1f,\"target_boost\":%.1f,\"tcu_protection_active\":%s,"
-        "\"tcu_limp_mode\":%s,\"torque_request\":%.1f,\"timestamp\":%llu}",
-        data->map_pressure,
-        data->wastegate_position,
-        data->tps_position,
-        data->engine_rpm,
-        data->target_boost,
-        data->tcu_protection_active ? "true" : "false",
-        data->tcu_limp_mode ? "true" : "false",
-        data->torque_request,
-        data->timestamp);
-
+    // TODO: Update this function to serialize the new ecu_data_t struct if needed for the web server.
+    static char json_buffer[20] = "{}";
     return json_buffer;
 }
 
 // Parse ECU data from JSON string
 bool ecu_data_from_json(const char *json_str, ecu_data_t *data)
 {
-    if (!json_str || !data) return false;
-
-    // Simple JSON parsing (you might want to use a proper JSON library)
-    float map_pressure = 0, wastegate = 0, tps = 0, rpm = 0, boost = 0, torque = 0;
-
-    if (sscanf(json_str,
-               "{\"map_pressure\":%f,\"wastegate_position\":%f,\"tps_position\":%f,"
-               "\"engine_rpm\":%f,\"target_boost\":%f,\"tcu_protection_active\":%*[^,],"
-               "\"tcu_limp_mode\":%*[^,],\"torque_request\":%f",
-               &map_pressure, &wastegate, &tps, &rpm, &boost, &torque) == 6) {
-
-        data->map_pressure = map_pressure;
-        data->wastegate_position = wastegate;
-        data->tps_position = tps;
-        data->engine_rpm = rpm;
-        data->target_boost = boost;
-        data->torque_request = torque;
-        data->timestamp = esp_timer_get_time() / 1000;
-
-        return true;
-    }
-
+    // TODO: Update this function if needed.
     return false;
 }
 
 // Simulate ECU data for testing
 void ecu_data_simulate(ecu_data_t *data)
 {
+    // TODO: Update this function to simulate the new data fields if needed for testing.
     if (!data) return;
 
     static float sim_time = 0;
@@ -131,15 +106,8 @@ void ecu_data_simulate(ecu_data_t *data)
 
     // Simulate realistic ECU data
     data->engine_rpm = 800 + 200 * sin(sim_time * 0.5f) + 100 * sin(sim_time * 2.0f);
-    data->map_pressure = 100 + 50 * sin(sim_time * 0.8f) + 20 * sin(sim_time * 1.5f);
+    data->map_kpa = 100 + 50 * sin(sim_time * 0.8f) + 20 * sin(sim_time * 1.5f);
     data->tps_position = 20 + 30 * sin(sim_time * 0.3f) + 10 * sin(sim_time * 1.2f);
-    data->wastegate_position = 30 + 40 * sin(sim_time * 0.6f) + 15 * sin(sim_time * 1.8f);
-    data->target_boost = 150 + 30 * sin(sim_time * 0.4f) + 10 * sin(sim_time * 0.9f);
-    data->torque_request = 50 + 25 * sin(sim_time * 0.7f) + 5 * sin(sim_time * 1.3f);
-
-    // Random protection events
-    data->tcu_protection_active = (rand() % 1000) < 5; // 0.5% chance
-    data->tcu_limp_mode = (rand() % 1000) < 2;         // 0.2% chance
 
     data->timestamp = esp_timer_get_time() / 1000;
 }
@@ -233,15 +201,8 @@ char* data_stream_to_json(void)
 
 char* ecu_data_to_string(const ecu_data_t *data)
 {
-    static char buffer[256];
-
-    if (!data) return "No data";
-
-    snprintf(buffer, sizeof(buffer),
-        "RPM: %.0f, MAP: %.1f kPa, TPS: %.1f%%, Boost: %.1f kPa, WG: %.1f%%",
-        data->engine_rpm, data->map_pressure, data->tps_position,
-        data->target_boost, data->wastegate_position);
-
+    // TODO: Update this function if needed for the web server.
+    static char buffer[32] = "No data";
     return buffer;
 }
 

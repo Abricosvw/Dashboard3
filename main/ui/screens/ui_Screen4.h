@@ -8,26 +8,20 @@ extern "C" {
 
 #include "lvgl.h"
 
-// SCREEN: ui_Screen4
 void ui_Screen4_screen_init(void);
 extern lv_obj_t * ui_Screen4;
-
-// MRE Gauge Objects
-extern lv_obj_t * ui_Arc_Abs_TPS;
+extern lv_obj_t * ui_Arc_Abs_Pedal;
 extern lv_obj_t * ui_Arc_WG_Pos;
 extern lv_obj_t * ui_Arc_BOV;
 extern lv_obj_t * ui_Arc_TCU_TQ_Req;
 extern lv_obj_t * ui_Arc_TCU_TQ_Act;
 extern lv_obj_t * ui_Arc_Eng_TQ_Req;
-
-// MRE Label Objects
-extern lv_obj_t * ui_Label_Abs_TPS_Value;
+extern lv_obj_t * ui_Label_Abs_Pedal_Value;
 extern lv_obj_t * ui_Label_WG_Pos_Value;
 extern lv_obj_t * ui_Label_BOV_Value;
 extern lv_obj_t * ui_Label_TCU_TQ_Req_Value;
 extern lv_obj_t * ui_Label_TCU_TQ_Act_Value;
 extern lv_obj_t * ui_Label_Eng_TQ_Req_Value;
-
 
 #ifdef __cplusplus
 } /*extern "C"*/

@@ -15,24 +15,27 @@ static void screen2_prev_screen_btn_event_cb(lv_event_t * e);
 static void screen2_next_screen_btn_event_cb(lv_event_t * e);
 static void swipe_handler_screen2(lv_event_t * e);
 
-lv_obj_t * ui_Screen2;
+lv_obj_t * ui_Screen2 = NULL;
 
 // Additional ECU Gauge Objects (5 датчиков)
-lv_obj_t * ui_Arc_Oil_Pressure;
-lv_obj_t * ui_Arc_Oil_Temp;
-lv_obj_t * ui_Arc_Water_Temp;
-lv_obj_t * ui_Arc_Fuel_Pressure;
-lv_obj_t * ui_Arc_Battery_Voltage; // Вернули Battery датчик
+lv_obj_t * ui_Arc_Oil_Pressure = NULL;
+lv_obj_t * ui_Arc_Oil_Temp = NULL;
+lv_obj_t * ui_Arc_Water_Temp = NULL;
+lv_obj_t * ui_Arc_Fuel_Pressure = NULL;
+lv_obj_t * ui_Arc_Battery_Voltage = NULL; // Вернули Battery датчик
 
 // Additional Label Objects
-lv_obj_t * ui_Label_Oil_Pressure_Value;
-lv_obj_t * ui_Label_Oil_Temp_Value;
-lv_obj_t * ui_Label_Water_Temp_Value;
-lv_obj_t * ui_Label_Fuel_Pressure_Value;
-lv_obj_t * ui_Label_Battery_Voltage_Value; // Вернули Battery label
+lv_obj_t * ui_Label_Oil_Pressure_Value = NULL;
+lv_obj_t * ui_Label_Oil_Temp_Value = NULL;
+lv_obj_t * ui_Label_Water_Temp_Value = NULL;
+lv_obj_t * ui_Label_Fuel_Pressure_Value = NULL;
+lv_obj_t * ui_Label_Battery_Voltage_Value = NULL; // Вернули Battery label
 
 
 
+// Touch cursor objects
+lv_obj_t * ui_Touch_Cursor_Screen2 = NULL;
+static lv_point_t last_touch_point_screen2 = {0, 0};
 
 // Animation objects
 static lv_anim_t anim_oil_pressure;
@@ -43,6 +46,45 @@ static lv_anim_t anim_battery_voltage; // Вернули Battery анимаци�
 
 
 
+// Touch cursor update function for Screen2
+void ui_update_touch_cursor_screen2(lv_point_t * point) {
+    ESP_LOGI("TOUCH_CURSOR", "Touch cursor Screen2 update called: x=%d, y=%d", point->x, point->y);
+
+    if (ui_Touch_Cursor_Screen2 && point) {
+        last_touch_point_screen2.x = point->x;
+        last_touch_point_screen2.y = point->y;
+
+        // Move cursor to touch position
+        lv_obj_set_pos(ui_Touch_Cursor_Screen2, point->x - 15, point->y - 15);
+
+        // Make cursor visible
+        lv_obj_clear_flag(ui_Touch_Cursor_Screen2, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_opa(ui_Touch_Cursor_Screen2, 255, 0);
+
+        ESP_LOGI("TOUCH_CURSOR", "Cursor Screen2 made visible at x=%d, y=%d", point->x - 15, point->y - 15);
+
+        // Start fade out animation
+        lv_anim_t fade_anim;
+        lv_anim_init(&fade_anim);
+        lv_anim_set_var(&fade_anim, ui_Touch_Cursor_Screen2);
+        lv_anim_set_values(&fade_anim, 255, 0);
+        lv_anim_set_time(&fade_anim, 500);
+        lv_anim_set_exec_cb(&fade_anim, fade_anim_cb_screen2);
+        lv_anim_set_ready_cb(&fade_anim, fade_ready_cb_screen2);
+        lv_anim_start(&fade_anim);
+    } else {
+        ESP_LOGE("TOUCH_CURSOR", "Cursor Screen2 object is NULL or point is NULL!");
+    }
+}
+
+// Animation callbacks for touch cursor
+static void fade_anim_cb_screen2(void * var, int32_t v) {
+    lv_obj_set_style_opa((lv_obj_t*)var, v, 0);
+}
+
+static void fade_ready_cb_screen2(lv_anim_t * a) {
+    lv_obj_add_flag((lv_obj_t*)a->var, LV_OBJ_FLAG_HIDDEN);
+}
 
 static void anim_value_cb(void * var, int32_t v)
 {
@@ -164,6 +206,20 @@ void ui_Screen2_screen_init(void)
     
 
     
+    // Initialize touch cursor for Screen 2
+    ui_Touch_Cursor_Screen2 = lv_obj_create(ui_Screen2);
+    lv_obj_set_size(ui_Touch_Cursor_Screen2, 30, 30);
+    lv_obj_set_style_bg_color(ui_Touch_Cursor_Screen2, lv_color_hex(0x00D4FF), 0);
+    lv_obj_set_style_radius(ui_Touch_Cursor_Screen2, 15, 0);
+    lv_obj_set_style_opa(ui_Touch_Cursor_Screen2, 0, 0); // Initially hidden
+    lv_obj_add_flag(ui_Touch_Cursor_Screen2, LV_OBJ_FLAG_HIDDEN);
+
+    // Add touch functionality to all gauges (5 датчиков)
+    // Touch gauges functionality removed - no longer needed
+
+    // Add touch event handlers for basic touch functionality
+    lv_obj_add_event_cb(ui_Screen2, general_touch_handler, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_Screen2, general_touch_handler, LV_EVENT_RELEASED, NULL);
     
     // Add swipe functionality for screen switching
     lv_obj_add_event_cb(ui_Screen2, swipe_handler_screen2, LV_EVENT_PRESSED, NULL);
@@ -173,27 +229,46 @@ void ui_Screen2_screen_init(void)
     // Previous screen button (left arrow)
     lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen2);
     lv_obj_set_size(prev_screen_btn, 50, 50);
-    lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
+    lv_obj_set_x(prev_screen_btn, 10);
+    lv_obj_set_y(prev_screen_btn, 400);
     lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_radius(prev_screen_btn, 25, 0);
     lv_obj_add_event_cb(prev_screen_btn, screen2_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
     
     lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
-    lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
+    lv_label_set_text(prev_icon, "←");
+    lv_obj_set_style_text_color(prev_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(prev_icon, &lv_font_montserrat_20, 0);
     lv_obj_center(prev_icon);
     
     // Next screen button (right arrow)
     lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen2);
     lv_obj_set_size(next_screen_btn, 50, 50);
-    lv_obj_align(next_screen_btn, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
+    lv_obj_set_x(next_screen_btn, 750);
+    lv_obj_set_y(next_screen_btn, 400);
     lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_radius(next_screen_btn, 25, 0);
     lv_obj_add_event_cb(next_screen_btn, screen2_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
     
     lv_obj_t * next_icon = lv_label_create(next_screen_btn);
-    lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
+    lv_label_set_text(next_icon, "→");
+    lv_obj_set_style_text_color(next_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(next_icon, &lv_font_montserrat_20, 0);
     lv_obj_center(next_icon);
     
+    // Navigation labels
+    lv_obj_t * prev_label = lv_label_create(ui_Screen2);
+    lv_label_set_text(prev_label, "Prev Screen");
+    lv_obj_set_style_text_color(prev_label, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(prev_label, &lv_font_montserrat_12, 0);
+    lv_obj_align_to(prev_label, prev_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
+
+    lv_obj_t * next_label = lv_label_create(ui_Screen2);
+    lv_label_set_text(next_label, "Next Screen");
+    lv_obj_set_style_text_color(next_label, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(next_label, &lv_font_montserrat_12, 0);
+    lv_obj_align_to(next_label, next_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
+
     ESP_LOGI("SCREEN2", "Screen 2 initialized with basic touch functionality, swipe gestures, and navigation buttons");
     
     // Setup animations for additional gauges
@@ -409,5 +484,10 @@ static void swipe_handler_screen2(lv_event_t * e)
     }
 }
 
+void ui_Screen2_screen_destroy(void)
+{
+    if(ui_Screen2) lv_obj_del(ui_Screen2);
+    ui_Screen2 = NULL;
+}
 
 

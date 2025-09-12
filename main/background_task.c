@@ -19,14 +19,18 @@ static QueueHandle_t background_queue = NULL;
 // Задача FreeRTOS для обработки фоновых операций
 static TaskHandle_t background_task_handle = NULL;
 
+// Статические буферы для избежания malloc в background_nvs_save_async
+static uint8_t static_data_buffer[256];
+static nvs_operation_t static_nvs_operation;
+
 // Максимальный размер очереди
 #define BACKGROUND_QUEUE_SIZE 10
 
-// Размер стека для фоновой задачи (увеличен для предотвращения переполнения)
-#define BACKGROUND_TASK_STACK_SIZE 8192
+// Размер стека для фоновой задачи
+#define BACKGROUND_TASK_STACK_SIZE 4096
 
-// Приоритет фоновой задачи (ниже чем у LVGL)
-#define BACKGROUND_TASK_PRIORITY 4
+// Приоритет фоновой задачи
+#define BACKGROUND_TASK_PRIORITY 5
 
 /**
  * @brief Основная функция фоновой задачи
@@ -55,20 +59,18 @@ static void background_task_worker(void *pvParameters)
                             result = nvs_set_blob(nvs_handle, nvs_op->key, nvs_op->value, nvs_op->size);
                             if (result == ESP_OK) {
                                 result = nvs_commit(nvs_handle);
-                                if (result != ESP_OK) {
-                                    ESP_LOGE(TAG, "NVS commit failed: %s", esp_err_to_name(result));
-                                }
-                            } else {
-                                ESP_LOGE(TAG, "NVS set_blob failed: %s", esp_err_to_name(result));
                             }
                             nvs_close(nvs_handle);
-                        } else {
-                            ESP_LOGE(TAG, "NVS open failed: %s", esp_err_to_name(result));
                         }
 
-                        // Free the memory that was allocated in background_nvs_save_async
-                        free(nvs_op->value);
-                        free(nvs_op);
+                        // Освобождаем память только если использовалась динамическая память
+                        // Статические буферы не освобождаем
+                        if (nvs_op != &static_nvs_operation) {
+                            // Использовалась динамическая память
+                            free(nvs_op->value);
+                            free(nvs_op);
+                        }
+                        // Для статической памяти ничего не делаем - она будет переиспользована
                     }
                     break;
                 }
@@ -150,15 +152,14 @@ esp_err_t background_task_init(void)
         return ESP_ERR_NO_MEM;
     }
 
-    // Создание фоновой задачи и привязка к ядру 1
-    BaseType_t ret = xTaskCreatePinnedToCore(
+    // Создание фоновой задачи
+    BaseType_t ret = xTaskCreate(
         background_task_worker,
         "bg_worker",
         BACKGROUND_TASK_STACK_SIZE,
         NULL,
         BACKGROUND_TASK_PRIORITY,
-        &background_task_handle,
-        1 // Pin to Core 1
+        &background_task_handle
     );
 
     if (ret != pdPASS) {
@@ -308,21 +309,28 @@ esp_err_t background_nvs_save_async(const char *namespace, const char *key, cons
         return ESP_ERR_INVALID_ARG;
     }
 
-    // Шаг 1: Выделение памяти для структуры операции
-    nvs_operation_t *nvs_op = malloc(sizeof(nvs_operation_t));
-    if (!nvs_op) {
-        ESP_LOGE(TAG, "Failed to allocate memory for NVS operation");
-        return ESP_ERR_NO_MEM;
-    }
+    void *value_copy;
+    nvs_operation_t *nvs_op;
 
-    // Шаг 2: Выделение памяти для копии данных
-    void *value_copy = malloc(size);
-    if (!value_copy) {
-        ESP_LOGE(TAG, "Failed to allocate memory for data buffer");
-        free(nvs_op); // Освобождаем память, выделенную на шаге 1
-        return ESP_ERR_NO_MEM;
+    if (size <= sizeof(static_data_buffer)) {
+        // Используем статический буфер для избежания malloc
+        value_copy = static_data_buffer;
+        nvs_op = &static_nvs_operation;
+        memcpy(value_copy, value, size);
+    } else {
+        // Для больших данных используем динамическую память
+        value_copy = malloc(size);
+        if (!value_copy) {
+            return ESP_ERR_NO_MEM;
+        }
+        memcpy(value_copy, value, size);
+
+        nvs_op = malloc(sizeof(nvs_operation_t));
+        if (!nvs_op) {
+            free(value_copy);
+            return ESP_ERR_NO_MEM;
+        }
     }
-    memcpy(value_copy, value, size);
 
     // Заполнение структуры операции
     nvs_op->namespace = namespace;
@@ -342,10 +350,10 @@ esp_err_t background_nvs_save_async(const char *namespace, const char *key, cons
 
     esp_err_t result = background_task_add(&task);
 
-    // Если не удалось добавить задачу в очередь, освобождаем выделенную память
-    if (result != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to add NVS save task to queue, freeing memory");
-        free(nvs_op->value);
+    // Если задача не была добавлена и мы использовали динамическую память, освобождаем её
+    if (result != ESP_OK && size > sizeof(static_data_buffer)) {
+        // Освобождаем динамическую память при ошибке
+        free(value_copy);
         free(nvs_op);
     }
 
