@@ -9,7 +9,7 @@
 #include "lvgl.h"
 #include "ui/screens/ui_Screen3.h"
 #include "include/can_parser.h"
-#include "components/sd_card_manager/include/sd_card_manager.h"
+#include "sd_card_manager.h"
 
 static const char *CAN_TAG = "CANBUS";
 

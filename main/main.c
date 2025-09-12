@@ -41,7 +41,7 @@
 
 // --- ДОБАВЛЕНО: Подключаем модуль фоновой задачи ---
 #include "background_task.h"
-#include "components/sd_card_manager/include/sd_card_manager.h"
+#include "sd_card_manager.h"
 
 static const char *TAG = "ECU_DASHBOARD";
 

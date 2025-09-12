@@ -20,9 +20,6 @@ void * ui_TextArea_CAN_Terminal;
 void * ui_Label_CAN_Status;
 void * ui_Label_CAN_Count;
 
-// Touch cursor object
-lv_obj_t * ui_Touch_Cursor_Screen3;
-
 // Advanced CAN Terminal Objects
 void * ui_Button_Clear;
 void * ui_Button_Sniffer;
@@ -58,24 +55,6 @@ static void can_sniffer_format_message(char *buffer, size_t size, uint32_t id, u
 static int can_sniffer_is_id_filtered(uint32_t id);
 static int can_sniffer_search_in_data(uint8_t *data, uint8_t dlc, const char *search_term);
 static void can_sniffer_update_statistics(uint32_t id);
-
-// Touch handler for general touch events
-static void screen3_touch_handler(lv_event_t * e) {
-    lv_event_code_t code = lv_event_get_code(e);
-
-    if (code == LV_EVENT_PRESSED) {
-        // Show touch cursor at touch point
-        lv_point_t point;
-        lv_indev_t * indev = lv_indev_get_act();
-        if (indev) {
-            lv_indev_get_point(indev, &point);
-            ui_update_touch_cursor_screen3(&point);
-        }
-    } else if (code == LV_EVENT_RELEASED) {
-        // Hide touch cursor
-        lv_obj_add_flag((lv_obj_t*)ui_Touch_Cursor_Screen3, LV_OBJ_FLAG_HIDDEN);
-    }
-}
 
 // Swipe handler for screen switching
 static void swipe_handler_screen3(lv_event_t * e) {
@@ -391,20 +370,6 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_style_bg_color((lv_obj_t*)ui_Slider_UpdateSpeed, lv_color_hex(0x00D4FF), LV_PART_KNOB);
     lv_obj_add_event_cb((lv_obj_t*)ui_Slider_UpdateSpeed, update_speed_slider_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-
-    
-    // Initialize touch cursor for Screen3
-    ui_Touch_Cursor_Screen3 = lv_obj_create(ui_Screen3);
-    lv_obj_set_size(ui_Touch_Cursor_Screen3, 30, 30);
-    lv_obj_set_style_bg_color(ui_Touch_Cursor_Screen3, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(ui_Touch_Cursor_Screen3, 15, 0);
-    lv_obj_set_style_opa(ui_Touch_Cursor_Screen3, 0, 0); // Initially hidden
-    lv_obj_add_flag(ui_Touch_Cursor_Screen3, LV_OBJ_FLAG_HIDDEN);
-    
-    // Add touch event handlers for basic touch functionality
-    lv_obj_add_event_cb(ui_Screen3, screen3_touch_handler, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_Screen3, screen3_touch_handler, LV_EVENT_RELEASED, NULL);
-    
     // Add swipe functionality for screen switching
     lv_obj_add_event_cb(ui_Screen3, swipe_handler_screen3, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen3, swipe_handler_screen3, LV_EVENT_RELEASED, NULL);
@@ -414,8 +379,7 @@ void ui_Screen3_screen_init(void)
     // Previous screen button (left arrow)
     lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen3);
     lv_obj_set_size(prev_screen_btn, 50, 50);
-    lv_obj_set_x(prev_screen_btn, 10);
-    lv_obj_set_y(prev_screen_btn, 400);
+    lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
     lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_radius(prev_screen_btn, 25, 0);
     lv_obj_add_event_cb(prev_screen_btn, screen3_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
@@ -436,8 +400,7 @@ void ui_Screen3_screen_init(void)
     // Next screen button (right arrow)
     lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen3);
     lv_obj_set_size(next_screen_btn, 50, 50);
-    lv_obj_set_x(next_screen_btn, 750);
-    lv_obj_set_y(next_screen_btn, 400);
+    lv_obj_align(next_screen_btn, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
     lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
     lv_obj_set_style_radius(next_screen_btn, 25, 0);
     lv_obj_add_event_cb(next_screen_btn, screen3_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
@@ -454,8 +417,6 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_style_text_color(next_label, lv_color_hex(0x888888), 0);
     lv_obj_set_style_text_font(next_label, &lv_font_montserrat_12, 0);
     lv_obj_align_to(next_label, next_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
-    
-
 }
 
 // Destroy Screen3

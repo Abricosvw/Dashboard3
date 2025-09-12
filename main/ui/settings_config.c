@@ -2,7 +2,7 @@
 #include "settings_config.h"
 #include <esp_log.h>
 #include <nvs_flash.h>
-#include "components/sd_card_manager/include/sd_card_manager.h"
+#include "sd_card_manager.h"
 #include <stdio.h>
 #include <nvs.h>
 #include <string.h>

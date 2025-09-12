@@ -4,7 +4,7 @@ file(GLOB_RECURSE SRC_UI "ui/*.c")
 list(REMOVE_ITEM SRC_UI "${CMAKE_CURRENT_SOURCE_DIR}/background_task.c")
 
 idf_component_register(
-    SRCS "background_task.c" "canbus.c" "web_server.c" "main.c" "ecu_data.c" "can_websocket.c" ${SRC_UI}
+    SRCS "background_task.c" "canbus.c" "web_server.c" "main.c" "ecu_data.c" "can_websocket.c" "can_parser.c" "ui/ui_updates.c" ${SRC_UI}
     INCLUDE_DIRS "." "ui" "include"
-    REQUIRES esp_lcd lvgl driver esp_lcd_touch_gt911 esp_http_server nvs_flash esp_wifi
+    REQUIRES esp_lcd lvgl driver esp_lcd_touch_gt911 esp_http_server nvs_flash esp_wifi sd_card_manager
 )
