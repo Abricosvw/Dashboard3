@@ -1,6 +1,5 @@
 #include "ui.h"
 #include "ui_helpers.h"
-#include "../mre_parser.h"
 #include <stdio.h> // For snprintf
 
 // This function updates all UI elements with the data received from the MRE parser.
