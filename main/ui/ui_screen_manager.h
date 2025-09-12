@@ -15,7 +15,8 @@ typedef enum {
     SCREEN_1 = 0,      // Main ECU Dashboard
     SCREEN_2 = 1,      // Additional Gauges
     SCREEN_3 = 2,      // CAN Bus Terminal
-    SCREEN_4 = 3,      // Advanced CAN Terminal
+    SCREEN_4 = 3,      // MRE Gauges Page 1
+    SCREEN_5 = 4,      // MRE Gauges Page 2
     SCREEN_6 = 5       // Device Parameters Settings
 } screen_id_t;
 

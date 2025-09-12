@@ -1,7 +1,7 @@
 #ifndef UI_UPDATES_H
 #define UI_UPDATES_H
 
-#include "../mre_parser.h"
+#include "../include/mre_parser.h"
 
 #ifdef __cplusplus
 extern "C" {
