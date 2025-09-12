@@ -2,6 +2,7 @@
 #define SERIAL_READER_H
 
 #include "esp_err.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "mre_data.h"
 
