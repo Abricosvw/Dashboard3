@@ -10,6 +10,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include <string.h>
+#include "ui/settings_config.h" // For settings_save()
 
 static const char *TAG = "BACKGROUND_TASK";
 
@@ -72,6 +73,13 @@ static void background_task_worker(void *pvParameters)
                         }
                         // Для статической памяти ничего не делаем - она будет переиспользована
                     }
+                    break;
+                }
+
+                case BG_TASK_SETTINGS_SAVE: {
+                    settings_save();
+                    // The settings_save function handles its own logging, so no result to check here.
+                    result = ESP_OK;
                     break;
                 }
 

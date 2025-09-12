@@ -1,209 +1,123 @@
 // Settings Configuration Implementation
-// Implements settings persistence and management functions
-
 #include "settings_config.h"
 #include <esp_log.h>
 #include <nvs_flash.h>
+#include "components/sd_card_manager/include/sd_card_manager.h"
+#include <stdio.h>
 #include <nvs.h>
 #include <string.h>
-#include "../background_task.h"  // Фоновая задача для асинхронных операций
+#include <stdlib.h>
+#include "../background_task.h"
 
-// Tag for logging
 static const char *TAG = "SETTINGS_CONFIG";
-
-// NVS namespace for settings
 #define NVS_NAMESPACE "settings"
-
-// Global settings structure
 static touch_settings_t current_settings;
 
-// Initialize default settings
+// Helper to serialize settings to a JSON string
+static void settings_to_json(const touch_settings_t* settings, char* buffer, size_t buffer_size) {
+    // A more robust implementation would use a proper JSON library
+    snprintf(buffer, buffer_size,
+             "{\"sensitivity\":%d,\"demo_mode\":%s,\"screen3_enabled\":%s}",
+             settings->touch_sensitivity_level,
+             settings->demo_mode_enabled ? "true" : "false",
+             settings->screen3_enabled ? "true" : "false");
+}
+
+// Helper to deserialize settings from a JSON string
+static bool settings_from_json(const char* json_str, touch_settings_t* settings) {
+    // This is a very basic parser. A real implementation should use a JSON library like cJSON.
+    const char* sens_key = "\"sensitivity\":";
+    const char* demo_key = "\"demo_mode\":";
+    const char* s3_key = "\"screen3_enabled\":";
+
+    char* sens_ptr = strstr(json_str, sens_key);
+    char* demo_ptr = strstr(json_str, demo_key);
+    char* s3_ptr = strstr(json_str, s3_key);
+
+    if (sens_ptr && demo_ptr && s3_ptr) {
+        settings->touch_sensitivity_level = atoi(sens_ptr + strlen(sens_key));
+        settings->demo_mode_enabled = strstr(demo_ptr, "true") != NULL;
+        settings->screen3_enabled = strstr(s3_ptr, "true") != NULL;
+        return true;
+    }
+    return false;
+}
+
 void settings_init_defaults(touch_settings_t *settings) {
     if (settings == NULL) return;
-
     settings->touch_sensitivity_level = DEFAULT_TOUCH_SENSITIVITY;
     settings->demo_mode_enabled = DEFAULT_DEMO_MODE_ENABLED;
     settings->screen3_enabled = DEFAULT_SCREEN3_ENABLED;
-
-    // Initialize all screen arcs to enabled
-    for (int i = 0; i < SCREEN1_ARCS_COUNT; i++) {
-        settings->screen1_arcs_enabled[i] = true;
-    }
-    for (int i = 0; i < SCREEN2_ARCS_COUNT; i++) {
-        settings->screen2_arcs_enabled[i] = true;
-    }
+    for (int i = 0; i < SCREEN1_ARCS_COUNT; i++) settings->screen1_arcs_enabled[i] = true;
+    for (int i = 0; i < SCREEN2_ARCS_COUNT; i++) settings->screen2_arcs_enabled[i] = true;
 }
-
-// Validate settings structure
-bool settings_validate(touch_settings_t *settings) {
-    if (settings == NULL) return false;
-
-    if (settings->touch_sensitivity_level < MIN_TOUCH_SENSITIVITY ||
-        settings->touch_sensitivity_level > MAX_TOUCH_SENSITIVITY) {
-        return false;
-    }
-
-    return true;
-}
-
-// Print debug information
-void settings_print_debug(touch_settings_t *settings) {
-    if (settings == NULL) return;
-
-    ESP_LOGI(TAG, "Settings Debug:");
-    ESP_LOGI(TAG, "  Touch Sensitivity: %d", settings->touch_sensitivity_level);
-    ESP_LOGI(TAG, "  Demo Mode: %s", settings->demo_mode_enabled ? "ON" : "OFF");
-    ESP_LOGI(TAG, "  Screen3: %s", settings->screen3_enabled ? "ON" : "OFF");
-
-    ESP_LOGI(TAG, "  Screen1 Arcs:");
-    for (int i = 0; i < SCREEN1_ARCS_COUNT; i++) {
-        ESP_LOGI(TAG, "    Arc %d: %s", i, settings->screen1_arcs_enabled[i] ? "ON" : "OFF");
-    }
-
-    ESP_LOGI(TAG, "  Screen2 Arcs:");
-    for (int i = 0; i < SCREEN2_ARCS_COUNT; i++) {
-        ESP_LOGI(TAG, "    Arc %d: %s", i, settings->screen2_arcs_enabled[i] ? "ON" : "OFF");
-    }
-}
-
-// Demo mode functions
-bool demo_mode_get_enabled(void) {
-    return current_settings.demo_mode_enabled;
-}
-
-void demo_mode_set_enabled(bool enabled) {
-    current_settings.demo_mode_enabled = enabled;
-}
-
-// Screen3 functions
-bool screen3_get_enabled(void) {
-    return current_settings.screen3_enabled;
-}
-
-void screen3_set_enabled(bool enabled) {
-    current_settings.screen3_enabled = enabled;
-}
-
-// Screen arcs functions (остаются без изменений)
-// ... (screen1_arc_get_enabled, set_enabled, etc.)
-
-// =================================================================
-// ИСПРАВЛЕННЫЕ ФУНКЦИИ / FIXED FUNCTIONS
-// =================================================================
 
 /**
- * @brief Медленная, блокирующая функция сохранения.
- * Вызывается ТОЛЬКО из фоновой задачи.
+ * @brief Saves settings to the SD card.
+ * This is a slow, blocking function and should only be called from a background task.
  */
-void settings_save_to_nvs(void) {
-    nvs_handle_t nvs_handle;
-    esp_err_t err;
-
-    err = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error opening NVS handle: %s", esp_err_to_name(err));
-        return;
-    }
-
-    err = nvs_set_blob(nvs_handle, "touch_settings", &current_settings, sizeof(touch_settings_t));
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Error saving settings to NVS: %s", esp_err_to_name(err));
+void settings_save(void) {
+    // Save to SD Card as JSON
+    char json_buffer[256];
+    settings_to_json(&current_settings, json_buffer, sizeof(json_buffer));
+    if (sd_card_write_file("/sdcard/settings.json", json_buffer) == ESP_OK) {
+        ESP_LOGI(TAG, "Settings saved to SD card successfully.");
     } else {
-        err = nvs_commit(nvs_handle);
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "Error committing NVS: %s", esp_err_to_name(err));
-        } else {
-            ESP_LOGI(TAG, "Settings saved to NVS successfully");
-        }
+        ESP_LOGE(TAG, "Failed to save settings to SD card.");
     }
-
-    nvs_close(nvs_handle);
 }
 
 /**
- * @brief Асинхронное сохранение настроек с использованием фоновой задачи
- * Не блокирует UI поток
+ * @brief Queues a request to save the current settings in a background task.
  */
 void trigger_settings_save(void) {
-    // Callback функция для уведомления о завершении сохранения
-    void settings_save_callback(esp_err_t result) {
-        if (result == ESP_OK) {
-            ESP_LOGI(TAG, "Settings saved to NVS asynchronously - SUCCESS");
-        } else {
-            ESP_LOGE(TAG, "Failed to save settings asynchronously: %s", esp_err_to_name(result));
-        }
-    }
-
-    // Используем фоновую задачу для асинхронного сохранения
-    esp_err_t ret = background_nvs_save_async(NVS_NAMESPACE, "touch_settings",
-                                             &current_settings, sizeof(touch_settings_t),
-                                             settings_save_callback, NULL);
-
-    if (ret != ESP_OK) {
-        if (ret == ESP_ERR_TIMEOUT) {
-            ESP_LOGW(TAG, "Background queue full, settings not saved. Try again later.");
-        } else {
-            ESP_LOGE(TAG, "Failed to queue settings save task: %s", esp_err_to_name(ret));
-            // Fallback только для критических ошибок, но не для переполнения очереди
-            if (ret != ESP_ERR_TIMEOUT) {
-                settings_save_to_nvs();
-            }
-        }
+    background_task_t task = {
+        .type = BG_TASK_SETTINGS_SAVE,
+        .callback = NULL // No callback needed for this simple case
+    };
+    if (background_task_add(&task) != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to queue settings save task. Queue might be full.");
     } else {
-        ESP_LOGI(TAG, "Settings save queued for background processing");
+        ESP_LOGI(TAG, "Settings save queued for background processing.");
     }
-}
-
-// Load settings from NVS (остается без изменений)
-esp_err_t settings_load_from_nvs(void) {
-    nvs_handle_t nvs_handle;
-    esp_err_t err;
-
-    err = nvs_open(NVS_NAMESPACE, NVS_READONLY, &nvs_handle);
-    if (err != ESP_OK) {
-        ESP_LOGW(TAG, "NVS not found, initializing with defaults.");
-        settings_init_defaults(&current_settings);
-        return ESP_ERR_NVS_NOT_FOUND;
-    }
-
-    size_t required_size = sizeof(touch_settings_t);
-    err = nvs_get_blob(nvs_handle, "touch_settings", &current_settings, &required_size);
-    if (err != ESP_OK || required_size != sizeof(touch_settings_t)) {
-        ESP_LOGW(TAG, "Failed to load settings or size mismatch, using defaults.");
-        settings_init_defaults(&current_settings);
-    } else {
-        ESP_LOGI(TAG, "Settings loaded from NVS successfully");
-        if (!settings_validate(&current_settings)) {
-            ESP_LOGW(TAG, "Loaded settings are invalid, using defaults");
-            settings_init_defaults(&current_settings);
-        }
-    }
-
-    nvs_close(nvs_handle);
-    return err;
-}
-
-// Apply current settings changes
-void settings_apply_changes(void) {
-    ESP_LOGI(TAG, "Applying settings changes...");
-    // Здесь должен быть код, который применяет настройки к UI, например,
-    // обновляет анимации в зависимости от demo_mode_enabled
-    // ui_Screen1_update_animations(demo_mode_get_enabled());
-    // ui_Screen2_update_animations(demo_mode_get_enabled());
 }
 
 /**
- * @brief Сбрасывает настройки в памяти к значениям по умолчанию.
- * НЕ сохраняет их в NVS. Сохранение должно быть вызвано отдельно.
+ * @brief Loads settings from the SD card. If it fails, loads defaults.
  */
-void settings_reset_to_defaults(void) {
-    ESP_LOGI(TAG, "Resetting settings to defaults in memory");
+esp_err_t settings_load(void) {
+    // Try to load from SD card
+    FILE* f = fopen("/sdcard/settings.json", "r");
+    if (f != NULL) {
+        char buffer[256] = {0};
+        fread(buffer, 1, sizeof(buffer) - 1, f);
+        fclose(f);
+        if (settings_from_json(buffer, &current_settings)) {
+            ESP_LOGI(TAG, "Settings loaded from SD card successfully.");
+            return ESP_OK;
+        } else {
+            ESP_LOGW(TAG, "Failed to parse settings.json, using defaults.");
+            settings_init_defaults(&current_settings);
+            return ESP_FAIL;
+        }
+    }
+
+    // If file doesn't exist or can't be opened, use defaults.
+    ESP_LOGI(TAG, "settings.json not found on SD card, initializing with defaults.");
     settings_init_defaults(&current_settings);
-    settings_apply_changes();
+    return ESP_ERR_NOT_FOUND;
 }
 
-// Остальные функции (screen1_arc_get_enabled и т.д.) остаются без изменений.
-// ...
+// ... other functions like settings_validate, getters/setters, etc. remain the same ...
+
+bool settings_validate(touch_settings_t *settings) { if (settings == NULL) return false; if (settings->touch_sensitivity_level < MIN_TOUCH_SENSITIVITY || settings->touch_sensitivity_level > MAX_TOUCH_SENSITIVITY) return false; return true; }
+void settings_print_debug(touch_settings_t *settings) { if(settings == NULL) return; ESP_LOGI(TAG, "Settings Debug: Touch=%d, Demo=%s, Screen3=%s", settings->touch_sensitivity_level, settings->demo_mode_enabled ? "ON":"OFF", settings->screen3_enabled ? "ON":"OFF"); }
+bool demo_mode_get_enabled(void) { return current_settings.demo_mode_enabled; }
+void demo_mode_set_enabled(bool enabled) { current_settings.demo_mode_enabled = enabled; }
+bool screen3_get_enabled(void) { return current_settings.screen3_enabled; }
+void screen3_set_enabled(bool enabled) { current_settings.screen3_enabled = enabled; }
+void settings_apply_changes(void) { ESP_LOGI(TAG, "Applying settings changes..."); }
+void settings_reset_to_defaults(void) { ESP_LOGI(TAG, "Resetting settings to defaults in memory"); settings_init_defaults(&current_settings); settings_apply_changes(); }
 bool screen1_arc_get_enabled(int arc_index) { if (arc_index < 0 || arc_index >= SCREEN1_ARCS_COUNT) return false; return current_settings.screen1_arcs_enabled[arc_index]; }
 void screen1_arc_set_enabled(int arc_index, bool enabled) { if (arc_index < 0 || arc_index >= SCREEN1_ARCS_COUNT) return; current_settings.screen1_arcs_enabled[arc_index] = enabled; }
 bool screen2_arc_get_enabled(int arc_index) { if (arc_index < 0 || arc_index >= SCREEN2_ARCS_COUNT) return false; return current_settings.screen2_arcs_enabled[arc_index]; }

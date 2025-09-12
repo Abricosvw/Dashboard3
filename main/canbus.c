@@ -9,6 +9,7 @@
 #include "lvgl.h"
 #include "ui/screens/ui_Screen3.h"
 #include "include/can_parser.h"
+#include "components/sd_card_manager/include/sd_card_manager.h"
 
 static const char *CAN_TAG = "CANBUS";
 
@@ -105,6 +106,18 @@ void canbus_task(void *pvParameters)
 
             // 3. Send raw CAN message to Screen3 sniffer for debugging.
             ui_process_real_can_message(message.identifier, message.data, message.dlc);
+
+            // 4. Log CAN trace to SD card if enabled
+            if (sd_card_is_can_trace_enabled()) {
+                char trace_buffer[100];
+                // Format: timestamp,ID,d0,d1,d2,d3,d4,d5,d6,d7
+                snprintf(trace_buffer, sizeof(trace_buffer), "%llu,%X,%02X,%02X,%02X,%02X,%02X,%02X,%02X,%02X\n",
+                         esp_timer_get_time() / 1000,
+                         message.identifier,
+                         message.data[0], message.data[1], message.data[2], message.data[3],
+                         message.data[4], message.data[5], message.data[6], message.data[7]);
+                sd_card_append_file("/sdcard/can_trace.csv", trace_buffer);
+            }
 
         } else if (ret == ESP_ERR_TIMEOUT) {
             // Timeout is normal if there's no traffic on the bus.

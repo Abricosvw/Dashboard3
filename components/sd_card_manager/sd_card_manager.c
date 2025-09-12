@@ -1,0 +1,124 @@
+#include "include/sd_card_manager.h"
+#include "esp_log.h"
+#include "driver/sdspi_host.h"
+#include "driver/spi_common.h"
+#include "sdmmc_cmd.h"
+#include "esp_vfs_fat.h"
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/unistd.h>
+
+static const char *TAG = "SD_CARD";
+
+static bool g_can_trace_enabled = false;
+
+// Pinout from user's example
+#define PIN_NUM_MISO 13
+#define PIN_NUM_MOSI 11
+#define PIN_NUM_CLK  12
+#define PIN_NUM_CS   4
+
+#define MOUNT_POINT "/sdcard"
+
+static sdmmc_card_t *s_card;
+static sdmmc_host_t s_host = SDSPI_HOST_DEFAULT();
+
+esp_err_t sd_card_init(void) {
+    esp_err_t ret;
+
+    ESP_LOGI(TAG, "Initializing SD card");
+
+    // Options for mounting the filesystem.
+    // If format_if_mount_failed is set to true, SD card will be partitioned and
+    // formatted in case when mounting fails.
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = true,
+        .max_files = 5,
+        .allocation_unit_size = 16 * 1024
+    };
+
+    ESP_LOGI(TAG, "Initializing SPI bus...");
+    spi_bus_config_t bus_cfg = {
+        .mosi_io_num = PIN_NUM_MOSI,
+        .miso_io_num = PIN_NUM_MISO,
+        .sclk_io_num = PIN_NUM_CLK,
+        .quadwp_io_num = -1,
+        .quadhd_io_num = -1,
+        .max_transfer_sz = 4000,
+    };
+    ret = spi_bus_initialize(s_host.slot, &bus_cfg, SDSPI_DEFAULT_DMA);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initialize bus.");
+        return ret;
+    }
+
+    // This initializes the slot without card detect (CD) and write protect (WP) signals.
+    // Modify slot_config.gpio_cd and slot_config.gpio_wp if your board has these signals.
+    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+    slot_config.gpio_cs = PIN_NUM_CS;
+    slot_config.host_id = s_host.slot;
+
+    ESP_LOGI(TAG, "Mounting filesystem");
+    ret = esp_vfs_fat_sdspi_mount(MOUNT_POINT, &s_host, &slot_config, &mount_config, &s_card);
+
+    if (ret != ESP_OK) {
+        if (ret == ESP_FAIL) {
+            ESP_LOGE(TAG, "Failed to mount filesystem. "
+                     "If you want the card to be formatted, set format_if_mount_failed = true.");
+        } else {
+            ESP_LOGE(TAG, "Failed to initialize the card (%s). "
+                     "Make sure SD card lines have pull-up resistors.", esp_err_to_name(ret));
+        }
+        return ret;
+    }
+    ESP_LOGI(TAG, "Filesystem mounted");
+
+    // Card has been initialized, print its properties
+    sdmmc_card_print_info(stdout, s_card);
+
+    return ESP_OK;
+}
+
+esp_err_t sd_card_deinit(void) {
+    if (s_card) {
+        esp_vfs_fat_sdcard_unmount(MOUNT_POINT, s_card);
+        ESP_LOGI(TAG, "SD card unmounted");
+    }
+    spi_bus_free(s_host.slot);
+    ESP_LOGI(TAG, "SPI bus freed");
+    return ESP_OK;
+}
+
+esp_err_t sd_card_write_file(const char* path, const char* data) {
+    ESP_LOGI(TAG, "Writing file: %s", path);
+    FILE *f = fopen(path, "w");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for writing");
+        return ESP_FAIL;
+    }
+    fprintf(f, "%s", data);
+    fclose(f);
+    ESP_LOGI(TAG, "File written");
+    return ESP_OK;
+}
+
+esp_err_t sd_card_append_file(const char* path, const char* data) {
+    ESP_LOGD(TAG, "Appending to file: %s", path);
+    FILE *f = fopen(path, "a");
+    if (f == NULL) {
+        ESP_LOGE(TAG, "Failed to open file for appending");
+        return ESP_FAIL;
+    }
+    fprintf(f, "%s", data);
+    fclose(f);
+    return ESP_OK;
+}
+
+void sd_card_set_can_trace_enabled(bool enabled) {
+    g_can_trace_enabled = enabled;
+    ESP_LOGI(TAG, "CAN trace logging %s", enabled ? "enabled" : "disabled");
+}
+
+bool sd_card_is_can_trace_enabled(void) {
+    return g_can_trace_enabled;
+}

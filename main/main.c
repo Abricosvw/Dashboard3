@@ -41,6 +41,7 @@
 
 // --- ДОБАВЛЕНО: Подключаем модуль фоновой задачи ---
 #include "background_task.h"
+#include "components/sd_card_manager/include/sd_card_manager.h"
 
 static const char *TAG = "ECU_DASHBOARD";
 
@@ -66,6 +67,15 @@ void app_main(void)
     // --- ДОБАВЛЕНО: Инициализация фоновой задачи для медленных операций ---
     // Эта задача будет обрабатывать сохранение в NVS, не блокируя UI.
     background_task_init();
+
+    // Initialize SD Card
+    if (sd_card_init() == ESP_OK) {
+        // Now that SD card is available, load settings
+        settings_load();
+        // Enable CAN trace logging from SD card settings if needed in the future
+        // For now, let's enable it by default for testing.
+        sd_card_set_can_trace_enabled(true);
+    }
 
     // Initialize WiFi
     ESP_ERROR_CHECK(esp_netif_init());
