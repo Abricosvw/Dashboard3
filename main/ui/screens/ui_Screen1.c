@@ -9,22 +9,21 @@
 #include "esp_log.h"
 #include <stdio.h>
 
-lv_obj_t * ui_Screen1;
-lv_obj_t * ui_Arc_MAP;
-lv_obj_t * ui_Arc_Wastegate;
-lv_obj_t * ui_Arc_TPS;
-lv_obj_t * ui_Arc_RPM;
-lv_obj_t * ui_Arc_Boost;
+lv_obj_t * ui_Screen1 = NULL;
+lv_obj_t * ui_Arc_MAP = NULL;
+lv_obj_t * ui_Arc_Wastegate = NULL;
+lv_obj_t * ui_Arc_TPS = NULL;
+lv_obj_t * ui_Arc_RPM = NULL;
+lv_obj_t * ui_Arc_Boost = NULL;
 // Intake Air Temp убран, возвращен TCU
-lv_obj_t * ui_LED_TCU;
-lv_obj_t * ui_Label_TCU_Status;
+lv_obj_t * ui_LED_TCU = NULL;
+lv_obj_t * ui_Label_TCU_Status = NULL;
 
-
-lv_obj_t * ui_Label_MAP_Value;
-lv_obj_t * ui_Label_Wastegate_Value;
-lv_obj_t * ui_Label_TPS_Value;
-lv_obj_t * ui_Label_RPM_Value;
-lv_obj_t * ui_Label_Boost_Value;
+lv_obj_t * ui_Label_MAP_Value = NULL;
+lv_obj_t * ui_Label_Wastegate_Value = NULL;
+lv_obj_t * ui_Label_TPS_Value = NULL;
+lv_obj_t * ui_Label_RPM_Value = NULL;
+lv_obj_t * ui_Label_Boost_Value = NULL;
 // Intake Air Temp label убран
 
 static lv_anim_t anim_map;
@@ -290,9 +289,7 @@ void ui_Screen1_screen_init(void)
         lv_anim_start(&anim_boost);
     }
     
-    
     // Touch gauges functionality removed - no longer needed
-    
     
     // Add swipe functionality for screen switching
     lv_obj_add_event_cb(ui_Screen1, swipe_handler_screen1, LV_EVENT_PRESSED, NULL);
@@ -309,8 +306,17 @@ void ui_Screen1_screen_init(void)
     lv_obj_add_event_cb(prev_screen_btn, screen1_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
-    lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
+    lv_label_set_text(prev_icon, "←");
+    lv_obj_set_style_text_color(prev_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(prev_icon, &lv_font_montserrat_20, 0);
     lv_obj_center(prev_icon);
+
+    // Previous screen label
+    lv_obj_t * prev_label = lv_label_create(ui_Screen1);
+    lv_label_set_text(prev_label, "Prev Screen");
+    lv_obj_set_style_text_color(prev_label, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(prev_label, &lv_font_montserrat_12, 0);
+    lv_obj_align_to(prev_label, prev_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
 
     // Next screen button (right arrow)
     lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen1);
@@ -321,9 +327,18 @@ void ui_Screen1_screen_init(void)
     lv_obj_add_event_cb(next_screen_btn, screen1_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
     
     lv_obj_t * next_icon = lv_label_create(next_screen_btn);
-    lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
+    lv_label_set_text(next_icon, "→");
+    lv_obj_set_style_text_color(next_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(next_icon, &lv_font_montserrat_20, 0);
     lv_obj_center(next_icon);
     
+    // Next screen label
+    lv_obj_t * next_label = lv_label_create(ui_Screen1);
+    lv_label_set_text(next_label, "Next Screen");
+    lv_obj_set_style_text_color(next_label, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(next_label, &lv_font_montserrat_12, 0);
+    lv_obj_align_to(next_label, next_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
+
     ESP_LOGI("SCREEN1", "Screen 1 initialized with basic touch functionality, swipe gestures, and navigation buttons");
 }
 
@@ -490,3 +505,8 @@ void ui_Screen1_update_arc_visibility(int arc_index, bool visible)
     }
 }
 
+void ui_Screen1_screen_destroy(void)
+{
+    if(ui_Screen1) lv_obj_del(ui_Screen1);
+    ui_Screen1 = NULL;
+}

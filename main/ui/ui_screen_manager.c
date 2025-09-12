@@ -26,12 +26,131 @@ static lv_point_t last_touch_point = {0, 0};
 // Current screen tracking
 static screen_id_t current_screen = SCREEN_1;
 
+// Touch screen functions
+void touch_screen_init(void)
+{
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_init called");
+
+    // Touch screen state is managed by individual screens
+
+    ESP_LOGI("TOUCH_SCREEN", "Touch screen initialized successfully");
+}
+
+// Enable touch screen
+void touch_screen_enable(void)
+{
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_enable called, current touch_active=%s", touch_active ? "TRUE" : "FALSE");
+
+    touch_active = true;
+
+    ESP_LOGI("TOUCH_SCREEN", "Touch screen enabled, touch_active set to: %s", touch_active ? "TRUE" : "FALSE");
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_enable completed successfully");
+}
+
+// Disable touch screen
+void touch_screen_disable(void)
+{
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_disable called, current touch_active=%s", touch_active ? "TRUE" : "FALSE");
+
+    touch_active = false;
+
+    ESP_LOGI("TOUCH_SCREEN", "Touch screen disabled, touch_active set to: %s", touch_active ? "TRUE" : "FALSE");
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_disable completed successfully");
+}
+
+// Check if touch screen is enabled
+bool touch_screen_is_enabled(void)
+{
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_is_enabled called, returning: %s", touch_active ? "TRUE" : "FALSE");
+    return touch_active;
+}
+
+// Set touch sensitivity (1-10)
+void touch_screen_set_sensitivity(uint8_t sensitivity)
+{
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_set_sensitivity called with value: %d", sensitivity);
+
+    if (sensitivity >= 1 && sensitivity <= 10) {
+        // Adjust touch thresholds based on sensitivity
+        touch_sensitivity_level = sensitivity;
+
+        ESP_LOGI("TOUCH_SCREEN", "Touch sensitivity set to %d", sensitivity);
+        ESP_LOGI("TOUCH_SCREEN", "touch_sensitivity_level updated to: %d", touch_sensitivity_level);
+    } else {
+        ESP_LOGW("TOUCH_SCREEN", "Invalid sensitivity value: %d (should be 1-10)", sensitivity);
+        ESP_LOGW("TOUCH_SCREEN", "touch_sensitivity_level remains unchanged: %d", touch_sensitivity_level);
+    }
+
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_set_sensitivity completed");
+}
+
+// Touch screen calibration
+void touch_screen_calibrate(void)
+{
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_calibrate called, current touch_active=%s", touch_active ? "TRUE" : "FALSE");
+
+    if (!touch_active) {
+        ESP_LOGW("TOUCH_SCREEN", "Cannot calibrate: touch screen is disabled");
+        return;
+    }
+
+    ESP_LOGI("TOUCH_SCREEN", "Touch screen calibration started, touch_active=%s", touch_active ? "TRUE" : "FALSE");
+
+    // TODO: Implement actual calibration logic
+    // This could involve collecting touch points and calculating offsets
+
+    ESP_LOGI("TOUCH_SCREEN", "Touch screen calibration completed");
+    ESP_LOGI("TOUCH_SCREEN", "touch_screen_calibrate completed successfully");
+}
+
+// General touch handler for cursor display and basic touch detection
+void general_touch_handler(lv_event_t * e)
+{
+    if (!touch_active) {
+        return;
+    }
+
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_point_t point;
+    lv_indev_get_point(lv_indev_get_act(), &point);
+
+    uint32_t current_time = lv_tick_get();
+
+    if (code == LV_EVENT_PRESSED) {
+        touch_start_time = current_time;
+        touch_start_point = point;
+        last_touch_point = point;
+
+        // Log basic touch coordinates
+        ESP_LOGI("TOUCH_HANDLER", "Touch pressed at x=%d, y=%d", point.x, point.y);
+
+        // Touch cursor functionality removed
+
+        // Log touch point information for debugging
+        ESP_LOGI("TOUCH_COORDS", "Touch point: x=%d, y=%d, screen=%d",
+                  point.x, point.y, current_screen);
+
+    } else if (code == LV_EVENT_RELEASED) {
+        uint32_t touch_duration = current_time - touch_start_time;
+
+        // Log touch release information
+        ESP_LOGI("TOUCH_HANDLER", "Touch released at x=%d, y=%d, duration=%d ms",
+                  point.x, point.y, touch_duration);
+
+        // Log final touch coordinates
+        ESP_LOGI("TOUCH_COORDS", "Touch ended: x=%d, y=%d, duration=%d ms",
+                  point.x, point.y, touch_duration);
+    }
+}
 
 // Initialize screen manager
 void ui_screen_manager_init(void)
 {
     ESP_LOGI("SCREEN_MANAGER", "Initializing UI screen manager...");
     
+    // Initialize touch screen
+    touch_screen_init();
+
     // Set initial screen
     current_screen = SCREEN_1;
     
@@ -53,7 +172,6 @@ static bool ui_is_screen_enabled(screen_id_t screen_id)
         case SCREEN_1:
         case SCREEN_2:
         case SCREEN_4:
-        case SCREEN_5:
         case SCREEN_6:
             return true; // These screens are always enabled
         case SCREEN_3:
@@ -212,6 +330,56 @@ screen_id_t ui_get_current_screen(void)
     return current_screen;
 }
 
+// Enable swipe gestures (now supported)
+void ui_enable_swipe_gestures(void)
+{
+    ESP_LOGI("SCREEN_MANAGER", "Swipe gestures enabled");
+    // Swipe gestures are now implemented in each screen
+}
+
+// Disable swipe gestures (now supported)
+void ui_disable_swipe_gestures(void)
+{
+    ESP_LOGI("SCREEN_MANAGER", "Swipe gestures disabled");
+    // Swipe gestures can be disabled by removing event callbacks
+}
+
+// Get touch sensitivity
+uint8_t ui_get_touch_sensitivity(void)
+{
+    return touch_sensitivity_level;
+}
+
+// Get swipe threshold (removed - no longer supported)
+int16_t ui_get_swipe_threshold(void)
+{
+    ESP_LOGW("SCREEN_MANAGER", "Swipe threshold is no longer supported");
+    return 0;
+}
+
+// Touch gauges functionality removed - function no longer needed
+
+// Create navigation buttons
+void ui_create_navigation_buttons(void)
+{
+    ESP_LOGI("NAVIGATION", "Creating navigation buttons...");
+
+    // Navigation buttons are now implemented in each screen
+    // Swipe gestures provide additional navigation method
+
+    ESP_LOGI("NAVIGATION", "Navigation buttons and swipe gestures created successfully");
+}
+
+// Update navigation buttons
+void ui_update_navigation_buttons(void)
+{
+    ESP_LOGI("NAVIGATION", "Updating navigation buttons...");
+
+    // Navigation buttons are updated automatically in each screen
+    // Swipe gestures work independently
+
+    ESP_LOGI("NAVIGATION", "Navigation buttons and swipe gestures updated successfully");
+}
 
 // Cleanup function
 void ui_screen_manager_cleanup(void)

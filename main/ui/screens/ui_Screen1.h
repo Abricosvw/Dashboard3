@@ -9,6 +9,7 @@ extern "C" {
 
 // SCREEN: ui_Screen1
 extern void ui_Screen1_screen_init(void);
+extern void ui_Screen1_screen_destroy(void);
 void ui_Screen1_update_animations(bool demo_enabled);
 extern lv_obj_t * ui_Screen1;
 extern lv_obj_t * ui_Arc_MAP;
@@ -20,6 +21,9 @@ extern lv_obj_t * ui_Arc_Boost;
 extern lv_obj_t * ui_LED_TCU;
 extern lv_obj_t * ui_Label_TCU_Status;
 
+// Touch cursor for Screen 1
+extern lv_obj_t * ui_Touch_Cursor_Screen1;
+extern void ui_update_touch_cursor(lv_point_t * point);
 
 // Arc visibility control
 void ui_Screen1_update_arc_visibility(int arc_index, bool visible);

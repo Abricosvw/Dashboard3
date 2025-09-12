@@ -1,16 +1,17 @@
 #ifndef UI_UPDATES_H
 #define UI_UPDATES_H
 
-#include "../include/mre_parser.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void update_mre_data_on_screen(const mre_data_t* data);
+// This function is called periodically by the LVGL task.
+// It reads the latest data from the global ECU data struct
+// and updates all the gauge widgets on all screens.
+void update_all_gauges(void);
 
 #ifdef __cplusplus
-} /*extern "C"*/
+}
 #endif
 
-#endif /*UI_UPDATES_H*/
+#endif // UI_UPDATES_H

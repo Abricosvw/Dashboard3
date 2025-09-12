@@ -24,8 +24,6 @@
 #include "esp_rom_sys.h"
 #include "lvgl.h"
 #include "ui/ui.h"
-#include "serial_reader.h" // For mre_data_queue
-#include "mre_parser.h"    // For mre_data_t and update function
 
 #define I2C_MASTER_SCL_IO           9       /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO           8       /*!< GPIO number used for I2C master data  */
@@ -83,7 +81,7 @@ static const char *DISPLAY_TAG = "example";
 #define EXAMPLE_LVGL_TASK_MAX_DELAY_MS 500
 #define EXAMPLE_LVGL_TASK_MIN_DELAY_MS 1
 #define EXAMPLE_LVGL_TASK_STACK_SIZE   (4 * 1024)
-#define EXAMPLE_LVGL_TASK_PRIORITY     6
+#define EXAMPLE_LVGL_TASK_PRIORITY     2
 
 static SemaphoreHandle_t lvgl_mux = NULL;
 
@@ -145,19 +143,11 @@ static void example_lvgl_port_task(void *arg)
 {
     ESP_LOGI(DISPLAY_TAG, "Starting LVGL task");
     uint32_t task_delay_ms = EXAMPLE_LVGL_TASK_MAX_DELAY_MS;
-    mre_data_t received_data;
-
     while (1) {
         // Lock the mutex due to the LVGL APIs are not thread-safe
         if (example_lvgl_lock(-1)) {
-
-            // Check for new data from the serial reader task
-            if (xQueueReceive(mre_data_queue, &received_data, (TickType_t)0) == pdPASS) {
-                update_mre_data_on_screen(&received_data);
-                ESP_LOGD(DISPLAY_TAG, "LVGL task received and updated MRE data. RPM: %d", received_data.rpm);
-            }
-
             task_delay_ms = lv_timer_handler();
+            update_all_gauges(); // Update our custom gauges
             // Release the mutex
             example_lvgl_unlock();
         }

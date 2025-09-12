@@ -15,24 +15,21 @@ static void screen2_prev_screen_btn_event_cb(lv_event_t * e);
 static void screen2_next_screen_btn_event_cb(lv_event_t * e);
 static void swipe_handler_screen2(lv_event_t * e);
 
-lv_obj_t * ui_Screen2;
+lv_obj_t * ui_Screen2 = NULL;
 
 // Additional ECU Gauge Objects (5 датчиков)
-lv_obj_t * ui_Arc_Oil_Pressure;
-lv_obj_t * ui_Arc_Oil_Temp;
-lv_obj_t * ui_Arc_Water_Temp;
-lv_obj_t * ui_Arc_Fuel_Pressure;
-lv_obj_t * ui_Arc_Battery_Voltage; // Вернули Battery датчик
+lv_obj_t * ui_Arc_Oil_Pressure = NULL;
+lv_obj_t * ui_Arc_Oil_Temp = NULL;
+lv_obj_t * ui_Arc_Water_Temp = NULL;
+lv_obj_t * ui_Arc_Fuel_Pressure = NULL;
+lv_obj_t * ui_Arc_Battery_Voltage = NULL; // Вернули Battery датчик
 
 // Additional Label Objects
-lv_obj_t * ui_Label_Oil_Pressure_Value;
-lv_obj_t * ui_Label_Oil_Temp_Value;
-lv_obj_t * ui_Label_Water_Temp_Value;
-lv_obj_t * ui_Label_Fuel_Pressure_Value;
-lv_obj_t * ui_Label_Battery_Voltage_Value; // Вернули Battery label
-
-
-
+lv_obj_t * ui_Label_Oil_Pressure_Value = NULL;
+lv_obj_t * ui_Label_Oil_Temp_Value = NULL;
+lv_obj_t * ui_Label_Water_Temp_Value = NULL;
+lv_obj_t * ui_Label_Fuel_Pressure_Value = NULL;
+lv_obj_t * ui_Label_Battery_Voltage_Value = NULL; // Вернули Battery label
 
 // Animation objects
 static lv_anim_t anim_oil_pressure;
@@ -40,9 +37,6 @@ static lv_anim_t anim_oil_temp;
 static lv_anim_t anim_water_temp;
 static lv_anim_t anim_fuel_pressure;
 static lv_anim_t anim_battery_voltage; // Вернули Battery анимацию
-
-
-
 
 static void anim_value_cb(void * var, int32_t v)
 {
@@ -162,9 +156,6 @@ void ui_Screen2_screen_init(void)
 
     // Всего 5 датчиков в 3x2 сетке
     
-
-    
-    
     // Add swipe functionality for screen switching
     lv_obj_add_event_cb(ui_Screen2, swipe_handler_screen2, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen2, swipe_handler_screen2, LV_EVENT_RELEASED, NULL);
@@ -179,7 +170,9 @@ void ui_Screen2_screen_init(void)
     lv_obj_add_event_cb(prev_screen_btn, screen2_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
     
     lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
-    lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
+    lv_label_set_text(prev_icon, "←");
+    lv_obj_set_style_text_color(prev_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(prev_icon, &lv_font_montserrat_20, 0);
     lv_obj_center(prev_icon);
     
     // Next screen button (right arrow)
@@ -191,9 +184,24 @@ void ui_Screen2_screen_init(void)
     lv_obj_add_event_cb(next_screen_btn, screen2_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
     
     lv_obj_t * next_icon = lv_label_create(next_screen_btn);
-    lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
+    lv_label_set_text(next_icon, "→");
+    lv_obj_set_style_text_color(next_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(next_icon, &lv_font_montserrat_20, 0);
     lv_obj_center(next_icon);
     
+    // Navigation labels
+    lv_obj_t * prev_label = lv_label_create(ui_Screen2);
+    lv_label_set_text(prev_label, "Prev Screen");
+    lv_obj_set_style_text_color(prev_label, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(prev_label, &lv_font_montserrat_12, 0);
+    lv_obj_align_to(prev_label, prev_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
+
+    lv_obj_t * next_label = lv_label_create(ui_Screen2);
+    lv_label_set_text(next_label, "Next Screen");
+    lv_obj_set_style_text_color(next_label, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(next_label, &lv_font_montserrat_12, 0);
+    lv_obj_align_to(next_label, next_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
+
     ESP_LOGI("SCREEN2", "Screen 2 initialized with basic touch functionality, swipe gestures, and navigation buttons");
     
     // Setup animations for additional gauges
@@ -409,5 +417,10 @@ static void swipe_handler_screen2(lv_event_t * e)
     }
 }
 
+void ui_Screen2_screen_destroy(void)
+{
+    if(ui_Screen2) lv_obj_del(ui_Screen2);
+    ui_Screen2 = NULL;
+}
 
 

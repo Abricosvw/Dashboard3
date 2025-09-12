@@ -20,7 +20,6 @@ void * ui_TextArea_CAN_Terminal;
 void * ui_Label_CAN_Status;
 void * ui_Label_CAN_Count;
 
-
 // Advanced CAN Terminal Objects
 void * ui_Button_Clear;
 void * ui_Button_Sniffer;
@@ -56,7 +55,6 @@ static void can_sniffer_format_message(char *buffer, size_t size, uint32_t id, u
 static int can_sniffer_is_id_filtered(uint32_t id);
 static int can_sniffer_search_in_data(uint8_t *data, uint8_t dlc, const char *search_term);
 static void can_sniffer_update_statistics(uint32_t id);
-
 
 // Swipe handler for screen switching
 static void swipe_handler_screen3(lv_event_t * e) {
@@ -372,15 +370,12 @@ void ui_Screen3_screen_init(void)
     lv_obj_set_style_bg_color((lv_obj_t*)ui_Slider_UpdateSpeed, lv_color_hex(0x00D4FF), LV_PART_KNOB);
     lv_obj_add_event_cb((lv_obj_t*)ui_Slider_UpdateSpeed, update_speed_slider_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
 
-
-    
-    
-    
     // Add swipe functionality for screen switching
     lv_obj_add_event_cb(ui_Screen3, swipe_handler_screen3, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen3, swipe_handler_screen3, LV_EVENT_RELEASED, NULL);
     
     // Add navigation buttons for screen switching
+    // Previous screen button (left arrow)
     // Previous screen button (left arrow)
     lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen3);
     lv_obj_set_size(prev_screen_btn, 50, 50);
@@ -390,8 +385,17 @@ void ui_Screen3_screen_init(void)
     lv_obj_add_event_cb(prev_screen_btn, screen3_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
-    lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
+    lv_label_set_text(prev_icon, "←");
+    lv_obj_set_style_text_color(prev_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(prev_icon, &lv_font_montserrat_20, 0);
     lv_obj_center(prev_icon);
+
+    // Previous screen label
+    lv_obj_t * prev_label = lv_label_create(ui_Screen3);
+    lv_label_set_text(prev_label, "Prev Screen");
+    lv_obj_set_style_text_color(prev_label, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(prev_label, &lv_font_montserrat_12, 0);
+    lv_obj_align_to(prev_label, prev_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
 
     // Next screen button (right arrow)
     lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen3);
@@ -402,12 +406,24 @@ void ui_Screen3_screen_init(void)
     lv_obj_add_event_cb(next_screen_btn, screen3_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
 
     lv_obj_t * next_icon = lv_label_create(next_screen_btn);
-    lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
+    lv_label_set_text(next_icon, "→");
+    lv_obj_set_style_text_color(next_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(next_icon, &lv_font_montserrat_20, 0);
     lv_obj_center(next_icon);
-    
 
+    // Next screen label
+    lv_obj_t * next_label = lv_label_create(ui_Screen3);
+    lv_label_set_text(next_label, "Next Screen");
+    lv_obj_set_style_text_color(next_label, lv_color_hex(0x888888), 0);
+    lv_obj_set_style_text_font(next_label, &lv_font_montserrat_12, 0);
+    lv_obj_align_to(next_label, next_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
 }
 
+// Destroy Screen3
+void ui_Screen3_screen_destroy(void)
+{
+    lv_obj_del(ui_Screen3);
+}
 
 // Add CAN message to terminal with search
 void ui_add_can_message(const char* message)
@@ -491,6 +507,16 @@ void ui_update_can_status(int connected, int message_count)
     }
 }
 
+// Update touch cursor position for Screen3
+void ui_update_touch_cursor_screen3(void * point)
+{
+    if (ui_Touch_Cursor_Screen3 && point) {
+        lv_point_t * p = (lv_point_t*)point;
+        lv_obj_set_pos((lv_obj_t*)ui_Touch_Cursor_Screen3, p->x - 15, p->y - 15);
+        lv_obj_clear_flag((lv_obj_t*)ui_Touch_Cursor_Screen3, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_set_style_opa((lv_obj_t*)ui_Touch_Cursor_Screen3, 255, 0);
+    }
+}
 
 // Clear CAN terminal
 void ui_clear_can_terminal(void)
