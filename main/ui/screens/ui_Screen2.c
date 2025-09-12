@@ -15,21 +15,21 @@ static void screen2_prev_screen_btn_event_cb(lv_event_t * e);
 static void screen2_next_screen_btn_event_cb(lv_event_t * e);
 static void swipe_handler_screen2(lv_event_t * e);
 
-lv_obj_t * ui_Screen2 = NULL;
+lv_obj_t * ui_Screen2;
 
 // Additional ECU Gauge Objects (5 датчиков)
-lv_obj_t * ui_Arc_Oil_Pressure = NULL;
-lv_obj_t * ui_Arc_Oil_Temp = NULL;
-lv_obj_t * ui_Arc_Water_Temp = NULL;
-lv_obj_t * ui_Arc_Fuel_Pressure = NULL;
-lv_obj_t * ui_Arc_Battery_Voltage = NULL; // Вернули Battery датчик
+lv_obj_t * ui_Arc_Oil_Pressure;
+lv_obj_t * ui_Arc_Oil_Temp;
+lv_obj_t * ui_Arc_Water_Temp;
+lv_obj_t * ui_Arc_Fuel_Pressure;
+lv_obj_t * ui_Arc_Battery_Voltage; // Вернули Battery датчик
 
 // Additional Label Objects
-lv_obj_t * ui_Label_Oil_Pressure_Value = NULL;
-lv_obj_t * ui_Label_Oil_Temp_Value = NULL;
-lv_obj_t * ui_Label_Water_Temp_Value = NULL;
-lv_obj_t * ui_Label_Fuel_Pressure_Value = NULL;
-lv_obj_t * ui_Label_Battery_Voltage_Value = NULL; // Вернули Battery label
+lv_obj_t * ui_Label_Oil_Pressure_Value;
+lv_obj_t * ui_Label_Oil_Temp_Value;
+lv_obj_t * ui_Label_Water_Temp_Value;
+lv_obj_t * ui_Label_Fuel_Pressure_Value;
+lv_obj_t * ui_Label_Battery_Voltage_Value; // Вернули Battery label
 
 
 

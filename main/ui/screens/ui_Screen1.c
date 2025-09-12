@@ -9,22 +9,22 @@
 #include "esp_log.h"
 #include <stdio.h>
 
-lv_obj_t * ui_Screen1 = NULL;
-lv_obj_t * ui_Arc_MAP = NULL;
-lv_obj_t * ui_Arc_Wastegate = NULL;
-lv_obj_t * ui_Arc_TPS = NULL;
-lv_obj_t * ui_Arc_RPM = NULL;
-lv_obj_t * ui_Arc_Boost = NULL;
+lv_obj_t * ui_Screen1;
+lv_obj_t * ui_Arc_MAP;
+lv_obj_t * ui_Arc_Wastegate;
+lv_obj_t * ui_Arc_TPS;
+lv_obj_t * ui_Arc_RPM;
+lv_obj_t * ui_Arc_Boost;
 // Intake Air Temp убран, возвращен TCU
-lv_obj_t * ui_LED_TCU = NULL;
-lv_obj_t * ui_Label_TCU_Status = NULL;
+lv_obj_t * ui_LED_TCU;
+lv_obj_t * ui_Label_TCU_Status;
 
 
-lv_obj_t * ui_Label_MAP_Value = NULL;
-lv_obj_t * ui_Label_Wastegate_Value = NULL;
-lv_obj_t * ui_Label_TPS_Value = NULL;
-lv_obj_t * ui_Label_RPM_Value = NULL;
-lv_obj_t * ui_Label_Boost_Value = NULL;
+lv_obj_t * ui_Label_MAP_Value;
+lv_obj_t * ui_Label_Wastegate_Value;
+lv_obj_t * ui_Label_TPS_Value;
+lv_obj_t * ui_Label_RPM_Value;
+lv_obj_t * ui_Label_Boost_Value;
 // Intake Air Temp label убран
 
 static lv_anim_t anim_map;
