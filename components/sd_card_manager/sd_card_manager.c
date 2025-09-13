@@ -107,8 +107,50 @@ esp_err_t sd_card_deinit(void) {
     return ESP_OK;
 }
 
+// Helper function to ensure the directory for a given path exists.
+// Note: This is a simplified implementation. For production code, a more
+// robust recursive directory creation function would be better.
+static esp_err_t ensure_dir_exists(const char *path) {
+    // Make a copy of the path to safely manipulate it
+    char *dir_path = strdup(path);
+    if (dir_path == NULL) {
+        ESP_LOGE(TAG, "strdup failed");
+        return ESP_ERR_NO_MEM;
+    }
+
+    // Find the last '/' to get the directory part of the path
+    char *last_slash = strrchr(dir_path, '/');
+    if (last_slash != NULL && last_slash != dir_path) { // Check it's not the root slash
+        // Terminate the string at the slash to get just the directory path
+        *last_slash = '\0';
+
+        // Check if the directory already exists
+        struct stat st;
+        if (stat(dir_path, &st) != 0) {
+            // Directory does not exist, so try to create it
+            ESP_LOGI(TAG, "Directory %s does not exist. Creating...", dir_path);
+            if (mkdir(dir_path, 0755) != 0) {
+                ESP_LOGE(TAG, "Failed to create directory %s", dir_path);
+                free(dir_path);
+                return ESP_FAIL;
+            }
+            ESP_LOGI(TAG, "Created directory %s", dir_path);
+        }
+    }
+
+    // Free the duplicated string
+    free(dir_path);
+    return ESP_OK;
+}
+
 esp_err_t sd_card_write_file(const char* path, const char* data) {
     if (xSemaphoreTake(sd_card_mutex, portMAX_DELAY) == pdTRUE) {
+        // Ensure the directory exists before trying to write the file
+        if (ensure_dir_exists(path) != ESP_OK) {
+            xSemaphoreGive(sd_card_mutex);
+            return ESP_FAIL;
+        }
+
         ESP_LOGI(TAG, "Writing file: %s", path);
         FILE *f = fopen(path, "w");
         if (f == NULL) {
@@ -127,6 +169,12 @@ esp_err_t sd_card_write_file(const char* path, const char* data) {
 
 esp_err_t sd_card_append_file(const char* path, const char* data) {
     if (xSemaphoreTake(sd_card_mutex, portMAX_DELAY) == pdTRUE) {
+        // Ensure the directory exists before trying to append to the file
+        if (ensure_dir_exists(path) != ESP_OK) {
+            xSemaphoreGive(sd_card_mutex);
+            return ESP_FAIL;
+        }
+
         ESP_LOGD(TAG, "Appending to file: %s", path);
         FILE *f = fopen(path, "a");
         if (f == NULL) {
