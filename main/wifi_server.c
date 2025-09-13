@@ -575,7 +575,7 @@ void wifi_server_broadcast_ecu_data(void)
     // For now, just log the data since we removed WebSocket
     ecu_data_t *data = ecu_data_get();
     ESP_LOGI(WIFI_TAG, "ECU Data: RPM=%.1f, MAP=%.1f, TPS=%.1f", 
-              data->engine_rpm, data->map_pressure, data->tps_position);
+              data->engine_rpm, data->map_kpa, data->tps_position);
 }
 
 bool wifi_is_connected(void)

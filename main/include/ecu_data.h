@@ -10,17 +10,28 @@
 extern "C" {
 #endif
 
-// ECU Data structure matching React types
+// ECU Data structure based on VW CAN bus spec
 typedef struct {
-    float map_pressure;          // MAP Pressure in kPa (100-250)
-    float wastegate_position;    // Wastegate position in % (0-100)
-    float tps_position;          // TPS position in % (0-100)
-    float engine_rpm;            // Engine RPM (0-7000)
-    float target_boost;          // Target boost in kPa (100-250)
-    bool tcu_protection_active;  // TCU protection active
-    bool tcu_limp_mode;         // TCU limp mode
-    float torque_request;        // Torque request in %
-    uint64_t timestamp;          // Timestamp in milliseconds
+    // Engine Parameters
+    float engine_rpm;
+    float tps_position;
+    float abs_pedal_pos;
+    float map_kpa;
+
+    // Boost Control
+    float wg_set_percent;
+    float wg_pos_percent;
+    float bov_percent;
+
+    // Torque Values (Nm)
+    float tcu_tq_req_nm;
+    float tcu_tq_act_nm;
+    float eng_trg_nm;
+    float eng_act_nm;
+    float limit_tq_nm;
+
+    // System
+    uint64_t timestamp;
 } ecu_data_t;
 
 // System settings
@@ -54,7 +65,8 @@ typedef struct {
 // Function prototypes
 void ecu_data_init(void);
 void ecu_data_update(ecu_data_t *data);
-ecu_data_t* ecu_data_get(void);
+ecu_data_t* ecu_data_get(void); // Unsafe, for internal use
+void ecu_data_get_copy(ecu_data_t *data_copy); // Thread-safe getter
 char* ecu_data_to_json(const ecu_data_t *data);
 bool ecu_data_from_json(const char *json_str, ecu_data_t *data);
 void ecu_data_simulate(ecu_data_t *data);

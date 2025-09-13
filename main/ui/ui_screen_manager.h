@@ -15,7 +15,8 @@ typedef enum {
     SCREEN_1 = 0,      // Main ECU Dashboard
     SCREEN_2 = 1,      // Additional Gauges
     SCREEN_3 = 2,      // CAN Bus Terminal
-    SCREEN_4 = 3,      // Advanced CAN Terminal
+    SCREEN_4 = 3,      // ECU Data Page 1
+    SCREEN_5 = 4,      // ECU Data Page 2
     SCREEN_6 = 5       // Device Parameters Settings
 } screen_id_t;
 
@@ -52,8 +53,9 @@ void ui_enable_swipe_gestures(void);
 void ui_disable_swipe_gestures(void);
 
 // Navigation buttons
-void ui_create_navigation_buttons(void);
-void ui_update_navigation_buttons(void);
+void ui_create_navigation_buttons(void); // Legacy, to be removed
+void ui_update_navigation_buttons(void); // Legacy, to be removed
+void ui_create_standard_navigation_buttons(lv_obj_t * parent_screen);
 
 // Cleanup function
 void ui_screen_manager_cleanup(void);

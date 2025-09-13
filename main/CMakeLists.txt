@@ -1,10 +1,36 @@
-# Add sources from ui directory (excluding background_task.c to avoid duplication)
-file(GLOB_RECURSE SRC_UI "ui/*.c")
-# Remove background_task.c from SRC_UI if it was included by glob
-list(REMOVE_ITEM SRC_UI "${CMAKE_CURRENT_SOURCE_DIR}/background_task.c")
-
 idf_component_register(
-    SRCS "background_task.c" "canbus.c" "web_server.c" "main.c" "ecu_data.c" "can_websocket.c" ${SRC_UI}
-    INCLUDE_DIRS "." "ui" "include"
-    REQUIRES esp_lcd lvgl driver esp_lcd_touch_gt911 esp_http_server nvs_flash esp_wifi
+    SRCS
+        "main.c"
+        "background_task.c"
+        "can_parser.c"
+        "can_websocket.c"
+        "canbus.c"
+        "ecu_data.c"
+        "web_server.c"
+        "wifi_server.c"
+        "ui/ui.c"
+        "ui/ui_helpers.c"
+        "ui/ui_screen_manager.c"
+        "ui/ui_updates.c"
+        "ui/settings_config.c"
+        "ui/components/ui_comp_hook.c"
+        "ui/screens/ui_Screen1.c"
+        "ui/screens/ui_Screen2.c"
+        "ui/screens/ui_Screen3.c"
+        "ui/screens/ui_Screen4.c"
+        "ui/screens/ui_Screen5.c"
+        "ui/screens/ui_Screen6.c"
+    INCLUDE_DIRS
+        "."
+        "include"
+        "ui"
+    REQUIRES
+        esp_lcd
+        lvgl
+        driver
+        esp_lcd_touch_gt911
+        esp_http_server
+        nvs_flash
+        esp_wifi
+        sd_card_manager
 )

@@ -60,11 +60,11 @@ void ui_Screen1_update_arcs_visibility(void);
 void ui_Screen2_update_arcs_visibility(void);
 
 // Settings persistence functions
-void settings_save_to_nvs(void);
+void settings_save(const touch_settings_t *settings_to_save);
 void trigger_settings_save(void);  // Асинхронное сохранение с фоновой задачей
 void settings_apply_changes(void);
 void settings_reset_to_defaults(void);
-esp_err_t settings_load_from_nvs(void);
+esp_err_t settings_load(void);
 
 #ifdef __cplusplus
 } /*extern "C"*/

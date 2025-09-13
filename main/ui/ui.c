@@ -9,6 +9,7 @@
 #include "screens/ui_Screen2.h"
 #include "screens/ui_Screen3.h"
 #include "screens/ui_Screen4.h"
+#include "screens/ui_Screen5.h"
 #include "screens/ui_Screen6.h"
 
 
@@ -43,14 +44,15 @@ void ui_init(void)
     // Initialize screen manager
     ui_screen_manager_init();
 
-    // Load settings from NVS
-    settings_load_from_nvs();
+    // Load settings
+    settings_load();
 
     // Initialize all screens
     ui_Screen1_screen_init();
     ui_Screen2_screen_init();  // Add Screen2 initialization
     ui_Screen3_screen_init();  // Add Screen3 initialization
     ui_Screen4_screen_init();  // Add Screen4 initialization
+    ui_Screen5_screen_init();  // Add Screen5 initialization
     ui_Screen6_screen_init();  // Add Screen6 initialization
     
     ui____initial_actions0 = lv_obj_create(NULL);
@@ -63,5 +65,20 @@ void ui_destroy(void)
     ui_Screen2_screen_destroy();
     ui_Screen3_screen_destroy();
     ui_Screen4_screen_destroy();
+    ui_Screen5_screen_destroy();
     ui_Screen6_screen_destroy();
+}
+
+/**
+ * @brief Sets the demo mode on or off for all relevant screens.
+ *
+ * @param enabled true to enable demo mode, false to disable.
+ */
+void ui_set_global_demo_mode(bool enabled)
+{
+    // Call the animation update function for each screen that supports it.
+    ui_Screen1_update_animations(enabled);
+    ui_Screen2_update_animations(enabled);
+    ui_Screen4_update_animations(enabled);
+    ui_Screen5_update_animations(enabled);
 }

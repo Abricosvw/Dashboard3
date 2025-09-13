@@ -29,6 +29,7 @@
 #include "ui/ui.h"
 #include "ui/settings_config.h"
 #include "ui/ui_screen_manager.h"
+#include "ui/ui_updates.h"
 #include "web_server.h"
 
 // CAN bus includes
@@ -41,10 +42,12 @@
 
 // --- ДОБАВЛЕНО: Подключаем модуль фоновой задачи ---
 #include "background_task.h"
+#include "sd_card_manager.h"
 
 static const char *TAG = "ECU_DASHBOARD";
 
-
+// Forward declaration for the UI update task
+void ui_update_task_handler(void *pvParameters);
 
 void app_main(void)
 {
@@ -66,6 +69,15 @@ void app_main(void)
     // --- ДОБАВЛЕНО: Инициализация фоновой задачи для медленных операций ---
     // Эта задача будет обрабатывать сохранение в NVS, не блокируя UI.
     background_task_init();
+
+    // Initialize SD Card
+    if (sd_card_init() == ESP_OK) {
+        // Now that SD card is available, load settings
+        settings_load();
+        // Enable CAN trace logging from SD card settings if needed in the future
+        // For now, let's enable it by default for testing.
+        sd_card_set_can_trace_enabled(true);
+    }
 
     // Initialize WiFi
     ESP_ERROR_CHECK(esp_netif_init());
@@ -138,6 +150,9 @@ void app_main(void)
     /* Initialize display and UI */
     display();
 
+    // Create the UI update task
+    xTaskCreate(ui_update_task_handler, "ui_update_task", 4096, NULL, 5, NULL);
+
     // Проверяем границы всех экранов - все элементы должны быть внутри 800x480
     ESP_LOGI(TAG, "🔍 Проверка границ всех экранов...");
     ui_validate_all_screen_bounds();
@@ -146,4 +161,16 @@ void app_main(void)
     demo_mode_set_enabled(DEFAULT_DEMO_MODE_ENABLED);
 
     ESP_LOGI(TAG, "ECU Dashboard initialized. Connect to WiFi: ECU_Dashboard");
+}
+// Task to update the UI gauges periodically
+void ui_update_task_handler(void *pvParameters) {
+    while(1) {
+        // Lock the LVGL mutex before touching UI elements
+        if (example_lvgl_lock(-1)) {
+            update_all_gauges();
+            example_lvgl_unlock();
+        }
+        // Run this task at a reasonable rate, e.g., every 50ms (20 FPS)
+        vTaskDelay(pdMS_TO_TICKS(50));
+    }
 }

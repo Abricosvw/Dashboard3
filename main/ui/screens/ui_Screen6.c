@@ -36,8 +36,6 @@ static bool screen3_enabled = false;
 // Function prototypes
 static void screen6_touch_handler(lv_event_t * e);
 static void swipe_handler_screen6(lv_event_t * e);
-static void screen6_prev_screen_btn_event_cb(lv_event_t * e);
-static void screen6_next_screen_btn_event_cb(lv_event_t * e);
 static void save_settings_event_cb(lv_event_t * e);
 static void reset_settings_event_cb(lv_event_t * e);
 static void demo_mode_event_cb(lv_event_t * e);
@@ -97,20 +95,6 @@ static void swipe_handler_screen6(lv_event_t * e) {
     }
 }
 
-// Previous screen button event callback
-static void screen6_prev_screen_btn_event_cb(lv_event_t * e) {
-    if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
-        ui_switch_to_next_enabled_screen(false);
-    }
-}
-
-// Next screen button event callback
-static void screen6_next_screen_btn_event_cb(lv_event_t * e) {
-    if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
-        ui_switch_to_next_enabled_screen(true);
-    }
-}
-
 // Save settings button event callback
 static void save_settings_event_cb(lv_event_t * e) {
     if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
@@ -133,9 +117,15 @@ static void reset_settings_event_cb(lv_event_t * e) {
 static void demo_mode_event_cb(lv_event_t * e) {
     if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
         demo_mode_enabled = !demo_mode_enabled;
+
+        // Update button visuals on this screen
         ui_Screen6_update_button_states();
+
+        // Update animations on all screens
+        ui_set_global_demo_mode(demo_mode_enabled);
+
         settings_modified = 1;
-        ESP_LOGI("SCREEN6", "Demo mode toggled to: %s", demo_mode_enabled ? "ON" : "OFF");
+        ESP_LOGI("SCREEN6", "Global demo mode toggled to: %s", demo_mode_enabled ? "ON" : "OFF");
     }
 }
 
@@ -231,26 +221,8 @@ void ui_Screen6_screen_init(void)
     lv_obj_add_event_cb(ui_Screen6, swipe_handler_screen6, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen6, swipe_handler_screen6, LV_EVENT_RELEASED, NULL);
 
-    // Navigation buttons
-    lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen6);
-    lv_obj_set_size(prev_screen_btn, 50, 50);
-    lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
-    lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(prev_screen_btn, 25, 0);
-    lv_obj_add_event_cb(prev_screen_btn, screen6_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
-    lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
-    lv_obj_center(prev_icon);
-
-    lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen6);
-    lv_obj_set_size(next_screen_btn, 50, 50);
-    lv_obj_align(next_screen_btn, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
-    lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(next_screen_btn, 25, 0);
-    lv_obj_add_event_cb(next_screen_btn, screen6_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_t * next_icon = lv_label_create(next_screen_btn);
-    lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
-    lv_obj_center(next_icon);
+    // Add standardized navigation buttons
+    ui_create_standard_navigation_buttons(ui_Screen6);
 
     // Load saved settings and update button states
     ui_Screen6_load_settings();

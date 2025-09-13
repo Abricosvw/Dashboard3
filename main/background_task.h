@@ -13,6 +13,7 @@
 // Типы операций для фоновой обработки
 typedef enum {
     BG_TASK_NVS_SAVE,           // Сохранение в NVS
+    BG_TASK_SETTINGS_SAVE,      // Сохранение настроек (NVS + SD)
     BG_TASK_NVS_LOAD,           // Загрузка из NVS
     BG_TASK_NVS_ERASE,          // Удаление из NVS
     BG_TASK_SYSTEM_RESET,       // Сброс системы

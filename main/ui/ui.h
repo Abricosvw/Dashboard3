@@ -19,12 +19,46 @@ extern "C" {
 #include "screens/ui_Screen2.h"
 #include "screens/ui_Screen3.h"
 #include "screens/ui_Screen4.h"
+#include "screens/ui_Screen5.h"
 #include "screens/ui_Screen6.h"
+#include "ui_updates.h"
 
 ///////////////////// SETTINGS ////////////////////
 #include "settings_config.h"
 
 ///////////////////// VARIABLES ////////////////////
+
+// SCREEN 1
+extern lv_obj_t * ui_Arc_MAP;
+extern lv_obj_t * ui_Arc_Wastegate;
+extern lv_obj_t * ui_Arc_TPS;
+extern lv_obj_t * ui_Arc_RPM;
+extern lv_obj_t * ui_Arc_Boost;
+extern lv_obj_t * ui_Label_MAP_Value;
+extern lv_obj_t * ui_Label_Wastegate_Value;
+extern lv_obj_t * ui_Label_TPS_Value;
+extern lv_obj_t * ui_Label_RPM_Value;
+extern lv_obj_t * ui_Label_Boost_Value;
+
+// SCREEN 4
+extern lv_obj_t * ui_Arc_Abs_Pedal;
+extern lv_obj_t * ui_Arc_WG_Pos;
+extern lv_obj_t * ui_Arc_BOV;
+extern lv_obj_t * ui_Arc_TCU_TQ_Req;
+extern lv_obj_t * ui_Arc_TCU_TQ_Act;
+extern lv_obj_t * ui_Arc_Eng_TQ_Req;
+extern lv_obj_t * ui_Label_Abs_Pedal_Value;
+extern lv_obj_t * ui_Label_WG_Pos_Value;
+extern lv_obj_t * ui_Label_BOV_Value;
+extern lv_obj_t * ui_Label_TCU_TQ_Req_Value;
+extern lv_obj_t * ui_Label_TCU_TQ_Act_Value;
+extern lv_obj_t * ui_Label_Eng_TQ_Req_Value;
+
+// SCREEN 5
+extern lv_obj_t * ui_Arc_Eng_TQ_Act;
+extern lv_obj_t * ui_Label_Eng_TQ_Act_Value;
+extern lv_obj_t * ui_Arc_Limit_TQ;
+extern lv_obj_t * ui_Label_Limit_TQ_Value;
 
 // EVENTS
 extern lv_obj_t * ui____initial_actions0;
@@ -35,6 +69,9 @@ extern bool touch_active;
 // UI INIT
 void ui_init(void);
 void ui_destroy(void);
+
+// Global demo mode control
+void ui_set_global_demo_mode(bool enabled);
 
 #ifdef __cplusplus
 } /*extern "C"*/
