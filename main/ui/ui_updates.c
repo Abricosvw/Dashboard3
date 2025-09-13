@@ -27,13 +27,13 @@ void update_all_gauges(void) {
         lv_arc_set_value(ui_Arc_MAP, (int16_t)data_copy.map_kpa);
         lv_label_set_text_fmt(ui_Label_MAP_Value, "%.0f", data_copy.map_kpa);
     }
-    // NOTE: Target Boost gauge is not updated from CAN spec, it was a simulated value.
-    // I will leave it alone for now. The user spec has no "Target MAP".
-    // Actually, the old parser had TargetMAP. The new one does not seem to have it.
-    // Let me re-check the spec.
-    // The user's spec does not mention a target MAP or target boost.
-    // The old `ecu_data_t` had `target_boost`. The new one does not.
-    // So I will not update the boost gauge.
+    if (lv_obj_is_valid(ui_Arc_Wastegate)) {
+        lv_arc_set_value(ui_Arc_Wastegate, (int16_t)data_copy.wg_pos_percent);
+        lv_label_set_text_fmt(ui_Label_Wastegate_Value, "%.1f", data_copy.wg_pos_percent);
+    }
+    // NOTE: The "Target Boost" gauge on Screen 1 and all gauges on Screen 2 are for display only.
+    // The current CAN bus specification provided by the user does not include data for these values.
+    // They will animate in demo mode but will not show live data.
 
     // --- Update Screen 4 Widgets ---
     if (lv_obj_is_valid(ui_Arc_Abs_Pedal)) {

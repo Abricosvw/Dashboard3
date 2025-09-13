@@ -53,8 +53,9 @@ void ui_enable_swipe_gestures(void);
 void ui_disable_swipe_gestures(void);
 
 // Navigation buttons
-void ui_create_navigation_buttons(void);
-void ui_update_navigation_buttons(void);
+void ui_create_navigation_buttons(void); // Legacy, to be removed
+void ui_update_navigation_buttons(void); // Legacy, to be removed
+void ui_create_standard_navigation_buttons(lv_obj_t * parent_screen);
 
 // Cleanup function
 void ui_screen_manager_cleanup(void);

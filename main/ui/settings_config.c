@@ -53,13 +53,19 @@ void settings_init_defaults(touch_settings_t *settings) {
 }
 
 /**
- * @brief Saves settings to the SD card.
- * This is a slow, blocking function and should only be called from a background task.
+ * @brief Saves the provided settings struct to the SD card.
+ * This is a slow, blocking function and should only be called from a background task
+ * or during initial setup.
+ * @param settings_to_save A pointer to the settings struct to save.
  */
-void settings_save(void) {
+void settings_save(const touch_settings_t *settings_to_save) {
+    if (settings_to_save == NULL) {
+        ESP_LOGE(TAG, "settings_save called with NULL data!");
+        return;
+    }
     // Save to SD Card as JSON
     char json_buffer[256];
-    settings_to_json(&current_settings, json_buffer, sizeof(json_buffer));
+    settings_to_json(settings_to_save, json_buffer, sizeof(json_buffer));
     if (sd_card_write_file("/sdcard/settings.json", json_buffer) == ESP_OK) {
         ESP_LOGI(TAG, "Settings saved to SD card successfully.");
     } else {
@@ -69,14 +75,29 @@ void settings_save(void) {
 
 /**
  * @brief Queues a request to save the current settings in a background task.
+ * This function makes a copy of the current settings to pass to the background task.
  */
 void trigger_settings_save(void) {
+    // Allocate memory for a copy of the settings to ensure thread safety.
+    touch_settings_t *settings_copy = malloc(sizeof(touch_settings_t));
+    if (settings_copy == NULL) {
+        ESP_LOGE(TAG, "Failed to allocate memory for settings copy!");
+        return;
+    }
+
+    // Copy the current settings to the new memory block
+    memcpy(settings_copy, &current_settings, sizeof(touch_settings_t));
+
     background_task_t task = {
         .type = BG_TASK_SETTINGS_SAVE,
-        .callback = NULL // No callback needed for this simple case
+        .data = settings_copy, // Pass the pointer to the copy
+        .data_size = sizeof(touch_settings_t),
+        .callback = NULL
     };
+
     if (background_task_add(&task) != ESP_OK) {
         ESP_LOGE(TAG, "Failed to queue settings save task. Queue might be full.");
+        free(settings_copy); // Free memory if task queuing fails
     } else {
         ESP_LOGI(TAG, "Settings save queued for background processing.");
     }
@@ -102,10 +123,15 @@ esp_err_t settings_load(void) {
         }
     }
 
-    // If file doesn't exist or can't be opened, use defaults.
-    ESP_LOGI(TAG, "settings.json not found on SD card, initializing with defaults.");
+    // If file doesn't exist or can't be opened, use defaults and create the file.
+    ESP_LOGI(TAG, "settings.json not found on SD card, initializing with defaults and saving.");
     settings_init_defaults(&current_settings);
-    return ESP_ERR_NOT_FOUND;
+
+    // Attempt to save the new default settings to the SD card.
+    // This is a blocking call, but it only happens once on the very first boot.
+    settings_save(&current_settings);
+
+    return ESP_ERR_NOT_FOUND; // Return NOT_FOUND to indicate that defaults were loaded.
 }
 
 // ... other functions like settings_validate, getters/setters, etc. remain the same ...

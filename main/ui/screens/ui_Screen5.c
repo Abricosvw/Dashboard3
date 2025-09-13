@@ -15,10 +15,13 @@ lv_obj_t * ui_Label_Eng_TQ_Act_Value;
 lv_obj_t * ui_Arc_Limit_TQ;
 lv_obj_t * ui_Label_Limit_TQ_Value;
 
+// Animation variables
+static lv_anim_t anim_eng_tq_act;
+static lv_anim_t anim_limit_tq;
+
 // Function prototypes
 static void swipe_handler_screen5(lv_event_t * e);
-static void screen5_prev_screen_btn_event_cb(lv_event_t * e);
-static void screen5_next_screen_btn_event_cb(lv_event_t * e);
+static void anim_value_cb_screen5(void * var, int32_t v);
 
 // Helper function to create a gauge
 static void create_gauge(lv_obj_t * parent, lv_obj_t ** arc, lv_obj_t ** label,
@@ -27,7 +30,7 @@ static void create_gauge(lv_obj_t * parent, lv_obj_t ** arc, lv_obj_t ** label,
 {
     lv_obj_t * cont = lv_obj_create(parent);
     lv_obj_set_width(cont, 250);
-    lv_obj_set_height(cont, 225);
+    lv_obj_set_height(cont, 200);
     lv_obj_set_x(cont, x);
     lv_obj_set_y(cont, y);
     lv_obj_set_align(cont, LV_ALIGN_TOP_LEFT);
@@ -78,39 +81,59 @@ void ui_Screen5_screen_init(void) {
     lv_obj_clear_flag(ui_Screen5, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(ui_Screen5, lv_color_hex(0x1a1a1a), 0);
 
-    lv_obj_t * title_label = lv_label_create(ui_Screen5);
-    lv_label_set_text(title_label, "ECU Data (Page 2)");
-    lv_obj_set_style_text_color(title_label, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_text_font(title_label, &lv_font_montserrat_24, 0);
-    lv_obj_align(title_label, LV_ALIGN_TOP_MID, 0, 10);
+    // Title removed as per user request to provide more space.
 
-    create_gauge(ui_Screen5, &ui_Arc_Eng_TQ_Act, &ui_Label_Eng_TQ_Act_Value, "Eng Tq Act", "Nm", lv_color_hex(0x00D4FF), 0, 500, 15, 60);
-    create_gauge(ui_Screen5, &ui_Arc_Limit_TQ, &ui_Label_Limit_TQ_Value, "Torque Limit", "Nm", lv_color_hex(0x00FF88), 0, 500, 285, 60);
+    // Centered vertically
+    create_gauge(ui_Screen5, &ui_Arc_Eng_TQ_Act, &ui_Label_Eng_TQ_Act_Value, "Eng Tq Act", "Nm", lv_color_hex(0x00D4FF), 0, 500, 15, 140);
+    create_gauge(ui_Screen5, &ui_Arc_Limit_TQ, &ui_Label_Limit_TQ_Value, "Torque Limit", "Nm", lv_color_hex(0x00FF88), 0, 500, 285, 140);
 
-    lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen5);
-    lv_obj_set_size(prev_screen_btn, 50, 50);
-    lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
-    lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(prev_screen_btn, 25, 0);
-    lv_obj_add_event_cb(prev_screen_btn, screen5_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
-    lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
-    lv_obj_center(prev_icon);
-
-    lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen5);
-    lv_obj_set_size(next_screen_btn, 50, 50);
-    lv_obj_align(next_screen_btn, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
-    lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(next_screen_btn, 25, 0);
-    lv_obj_add_event_cb(next_screen_btn, screen5_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_t * next_icon = lv_label_create(next_screen_btn);
-    lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
-    lv_obj_center(next_icon);
+    // Add standardized navigation buttons
+    ui_create_standard_navigation_buttons(ui_Screen5);
 
     lv_obj_add_event_cb(ui_Screen5, swipe_handler_screen5, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen5, swipe_handler_screen5, LV_EVENT_RELEASED, NULL);
 
+    // Initialize animations
+    lv_anim_init(&anim_eng_tq_act);
+    lv_anim_set_var(&anim_eng_tq_act, ui_Arc_Eng_TQ_Act);
+    lv_anim_set_values(&anim_eng_tq_act, 0, 500);
+    lv_anim_set_time(&anim_eng_tq_act, 3000);
+    lv_anim_set_playback_time(&anim_eng_tq_act, 3000);
+    lv_anim_set_repeat_count(&anim_eng_tq_act, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_exec_cb(&anim_eng_tq_act, anim_value_cb_screen5);
+
+    lv_anim_init(&anim_limit_tq);
+    lv_anim_set_var(&anim_limit_tq, ui_Arc_Limit_TQ);
+    lv_anim_set_values(&anim_limit_tq, 0, 500);
+    lv_anim_set_time(&anim_limit_tq, 4000);
+    lv_anim_set_playback_time(&anim_limit_tq, 4000);
+    lv_anim_set_repeat_count(&anim_limit_tq, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_exec_cb(&anim_limit_tq, anim_value_cb_screen5);
+
+    if (demo_mode_get_enabled()) {
+        ui_Screen5_update_animations(true);
+    }
+
     ESP_LOGI("SCREEN5", "Screen 5 initialized");
+}
+
+static void anim_value_cb_screen5(void * var, int32_t v)
+{
+    lv_arc_set_value((lv_obj_t *)var, v);
+
+    if (var == ui_Arc_Eng_TQ_Act) lv_label_set_text_fmt(ui_Label_Eng_TQ_Act_Value, "%d", v);
+    else if (var == ui_Arc_Limit_TQ) lv_label_set_text_fmt(ui_Label_Limit_TQ_Value, "%d", v);
+}
+
+void ui_Screen5_update_animations(bool demo_enabled)
+{
+    if (demo_enabled) {
+        lv_anim_start(&anim_eng_tq_act);
+        lv_anim_start(&anim_limit_tq);
+    } else {
+        lv_anim_del(ui_Arc_Eng_TQ_Act, anim_value_cb_screen5);
+        lv_anim_del(ui_Arc_Limit_TQ, anim_value_cb_screen5);
+    }
 }
 
 static void swipe_handler_screen5(lv_event_t * e) {
@@ -122,10 +145,10 @@ static void swipe_handler_screen5(lv_event_t * e) {
     }
 }
 
-static void screen5_prev_screen_btn_event_cb(lv_event_t * e) {
-    if (lv_event_get_code(e) == LV_EVENT_CLICKED) ui_switch_to_next_enabled_screen(false);
-}
 
-static void screen5_next_screen_btn_event_cb(lv_event_t * e) {
-    if (lv_event_get_code(e) == LV_EVENT_CLICKED) ui_switch_to_next_enabled_screen(true);
+void ui_Screen5_screen_destroy(void) {
+    if (ui_Screen5) {
+        lv_obj_del(ui_Screen5);
+        ui_Screen5 = NULL;
+    }
 }
