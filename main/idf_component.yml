@@ -2,8 +2,4 @@ dependencies:
   idf: ">=4.4"
   lvgl/lvgl: "~8.3.0"
   esp_lcd_touch_gt911: "^1.0"
-  # Framework components required by sd_card_manager
-  driver: "*"
-  fatfs: "*"
-  sdmmc: "*"
   
