@@ -157,9 +157,6 @@ void app_main(void)
     ESP_LOGI(TAG, "🔍 Проверка границ всех экранов...");
     ui_validate_all_screen_bounds();
 
-    // Initialize demo mode after UI is fully initialized
-    demo_mode_set_enabled(DEFAULT_DEMO_MODE_ENABLED);
-
     ESP_LOGI(TAG, "ECU Dashboard initialized. Connect to WiFi: ECU_Dashboard");
 }
 // Task to update the UI gauges periodically
