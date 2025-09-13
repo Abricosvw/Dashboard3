@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include <string.h>
+#include "esp_timer.h"
 #include "include/web_server.h"
 #include "include/can_websocket.h"
 #include "lvgl.h"
@@ -105,7 +106,7 @@ void canbus_task(void *pvParameters)
             // The UI task will periodically read this data to update the gauges.
 
             // 3. Send raw CAN message to Screen3 sniffer for debugging.
-            ui_process_real_can_message(message.identifier, message.data, message.dlc);
+            ui_process_real_can_message(message.identifier, message.data, message.data_length_code);
 
             // 4. Log CAN trace to SD card if enabled
             if (sd_card_is_can_trace_enabled()) {
