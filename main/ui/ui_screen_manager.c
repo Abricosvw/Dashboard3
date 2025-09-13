@@ -172,6 +172,7 @@ static bool ui_is_screen_enabled(screen_id_t screen_id)
         case SCREEN_1:
         case SCREEN_2:
         case SCREEN_4:
+        case SCREEN_5:
         case SCREEN_6:
             return true; // These screens are always enabled
         case SCREEN_3:
@@ -380,6 +381,68 @@ void ui_update_navigation_buttons(void)
 
     ESP_LOGI("NAVIGATION", "Navigation buttons and swipe gestures updated successfully");
 }
+
+// Event callback for the "Previous" button
+static void _nav_prev_btn_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        ui_switch_to_next_enabled_screen(false); // false = backward
+    }
+}
+
+// Event callback for the "Next" button
+static void _nav_next_btn_event_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        ui_switch_to_next_enabled_screen(true); // true = forward
+    }
+}
+
+/**
+ * @brief Creates standardized "Next" and "Previous" navigation buttons on a given parent screen.
+ *
+ * @param parent_screen The screen object to which the buttons will be added.
+ */
+void ui_create_standard_navigation_buttons(lv_obj_t * parent_screen)
+{
+    if (!parent_screen) {
+        ESP_LOGE("NAV_BUTTONS", "Cannot create buttons on a NULL screen.");
+        return;
+    }
+
+    // Previous screen button (left arrow)
+    lv_obj_t * prev_screen_btn = lv_btn_create(parent_screen);
+    lv_obj_set_size(prev_screen_btn, 50, 50);
+    lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
+    lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
+    lv_obj_set_style_radius(prev_screen_btn, 25, 0);
+    lv_obj_add_event_cb(prev_screen_btn, _nav_prev_btn_event_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
+    lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
+    lv_obj_set_style_text_color(prev_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(prev_icon, &lv_font_montserrat_20, 0);
+    lv_obj_center(prev_icon);
+
+    // Next screen button (right arrow)
+    lv_obj_t * next_screen_btn = lv_btn_create(parent_screen);
+    lv_obj_set_size(next_screen_btn, 50, 50);
+    lv_obj_align(next_screen_btn, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
+    lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
+    lv_obj_set_style_radius(next_screen_btn, 25, 0);
+    lv_obj_add_event_cb(next_screen_btn, _nav_next_btn_event_cb, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_t * next_icon = lv_label_create(next_screen_btn);
+    lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
+    lv_obj_set_style_text_color(next_icon, lv_color_white(), 0);
+    lv_obj_set_style_text_font(next_icon, &lv_font_montserrat_20, 0);
+    lv_obj_center(next_icon);
+
+    ESP_LOGI("NAV_BUTTONS", "Standard navigation buttons created for screen.");
+}
+
 
 // Cleanup function
 void ui_screen_manager_cleanup(void)

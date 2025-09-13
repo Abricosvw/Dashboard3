@@ -70,6 +70,9 @@ extern bool touch_active;
 void ui_init(void);
 void ui_destroy(void);
 
+// Global demo mode control
+void ui_set_global_demo_mode(bool enabled);
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

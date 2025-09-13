@@ -26,10 +26,17 @@ lv_obj_t * ui_Label_TCU_TQ_Act_Value;
 lv_obj_t * ui_Label_Eng_TQ_Req_Value;
 
 
+// Animation variables
+static lv_anim_t anim_abs_pedal;
+static lv_anim_t anim_wg_pos;
+static lv_anim_t anim_bov;
+static lv_anim_t anim_tcu_tq_req;
+static lv_anim_t anim_tcu_tq_act;
+static lv_anim_t anim_eng_tq_req;
+
 // Function prototypes
 static void swipe_handler_screen4(lv_event_t * e);
-static void screen4_prev_screen_btn_event_cb(lv_event_t * e);
-static void screen4_next_screen_btn_event_cb(lv_event_t * e);
+static void anim_value_cb_screen4(void * var, int32_t v);
 
 // Helper function to create a gauge
 static void create_gauge(lv_obj_t * parent, lv_obj_t ** arc, lv_obj_t ** label,
@@ -38,7 +45,7 @@ static void create_gauge(lv_obj_t * parent, lv_obj_t ** arc, lv_obj_t ** label,
 {
     lv_obj_t * cont = lv_obj_create(parent);
     lv_obj_set_width(cont, 250);
-    lv_obj_set_height(cont, 225);
+    lv_obj_set_height(cont, 200);
     lv_obj_set_x(cont, x);
     lv_obj_set_y(cont, y);
     lv_obj_set_align(cont, LV_ALIGN_TOP_LEFT);
@@ -89,43 +96,110 @@ void ui_Screen4_screen_init(void) {
     lv_obj_clear_flag(ui_Screen4, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(ui_Screen4, lv_color_hex(0x1a1a1a), 0);
 
-    lv_obj_t * title_label = lv_label_create(ui_Screen4);
-    lv_label_set_text(title_label, "ECU Data (Page 1)");
-    lv_obj_set_style_text_color(title_label, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_text_font(title_label, &lv_font_montserrat_24, 0);
-    lv_obj_align(title_label, LV_ALIGN_TOP_MID, 0, 10);
+    // Title removed as per user request to provide more space.
 
-    create_gauge(ui_Screen4, &ui_Arc_Abs_Pedal, &ui_Label_Abs_Pedal_Value, "Abs. Pedal Pos", "%", lv_color_hex(0x00D4FF), 0, 100, 15, 60);
-    create_gauge(ui_Screen4, &ui_Arc_WG_Pos, &ui_Label_WG_Pos_Value, "Wastegate Pos", "%", lv_color_hex(0x00FF88), 0, 100, 285, 60);
-    create_gauge(ui_Screen4, &ui_Arc_BOV, &ui_Label_BOV_Value, "BOV", "%", lv_color_hex(0xFFD700), 0, 100, 545, 60);
-    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Req, &ui_Label_TCU_TQ_Req_Value, "TCU Tq Req", "Nm", lv_color_hex(0xFF6B35), 0, 500, 15, 290);
-    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Act, &ui_Label_TCU_TQ_Act_Value, "TCU Tq Act", "Nm", lv_color_hex(0xFF3366), 0, 500, 285, 290);
-    create_gauge(ui_Screen4, &ui_Arc_Eng_TQ_Req, &ui_Label_Eng_TQ_Req_Value, "Eng Tq Req", "Nm", lv_color_hex(0x8A2BE2), 0, 500, 545, 290);
+    // Row 1 - Centered vertically
+    create_gauge(ui_Screen4, &ui_Arc_Abs_Pedal, &ui_Label_Abs_Pedal_Value, "Abs. Pedal Pos", "%", lv_color_hex(0x00D4FF), 0, 100, 15, 35);
+    create_gauge(ui_Screen4, &ui_Arc_WG_Pos, &ui_Label_WG_Pos_Value, "Wastegate Pos", "%", lv_color_hex(0x00FF88), 0, 100, 285, 35);
+    create_gauge(ui_Screen4, &ui_Arc_BOV, &ui_Label_BOV_Value, "BOV", "%", lv_color_hex(0xFFD700), 0, 100, 545, 35);
+    // Row 2 - Centered vertically
+    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Req, &ui_Label_TCU_TQ_Req_Value, "TCU Tq Req", "Nm", lv_color_hex(0xFF6B35), 0, 500, 15, 245);
+    create_gauge(ui_Screen4, &ui_Arc_TCU_TQ_Act, &ui_Label_TCU_TQ_Act_Value, "TCU Tq Act", "Nm", lv_color_hex(0xFF3366), 0, 500, 285, 245);
+    create_gauge(ui_Screen4, &ui_Arc_Eng_TQ_Req, &ui_Label_Eng_TQ_Req_Value, "Eng Tq Req", "Nm", lv_color_hex(0x8A2BE2), 0, 500, 545, 245);
 
-    lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen4);
-    lv_obj_set_size(prev_screen_btn, 50, 50);
-    lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
-    lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(prev_screen_btn, 25, 0);
-    lv_obj_add_event_cb(prev_screen_btn, screen4_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
-    lv_label_set_text(prev_icon, LV_SYMBOL_LEFT);
-    lv_obj_center(prev_icon);
-
-    lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen4);
-    lv_obj_set_size(next_screen_btn, 50, 50);
-    lv_obj_align(next_screen_btn, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
-    lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(next_screen_btn, 25, 0);
-    lv_obj_add_event_cb(next_screen_btn, screen4_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-    lv_obj_t * next_icon = lv_label_create(next_screen_btn);
-    lv_label_set_text(next_icon, LV_SYMBOL_RIGHT);
-    lv_obj_center(next_icon);
+    // Add standardized navigation buttons
+    ui_create_standard_navigation_buttons(ui_Screen4);
 
     lv_obj_add_event_cb(ui_Screen4, swipe_handler_screen4, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen4, swipe_handler_screen4, LV_EVENT_RELEASED, NULL);
 
+    // Initialize animations
+    lv_anim_init(&anim_abs_pedal);
+    lv_anim_set_var(&anim_abs_pedal, ui_Arc_Abs_Pedal);
+    lv_anim_set_values(&anim_abs_pedal, 0, 100);
+    lv_anim_set_time(&anim_abs_pedal, 3000);
+    lv_anim_set_playback_time(&anim_abs_pedal, 3000);
+    lv_anim_set_repeat_count(&anim_abs_pedal, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_exec_cb(&anim_abs_pedal, anim_value_cb_screen4);
+
+    lv_anim_init(&anim_wg_pos);
+    lv_anim_set_var(&anim_wg_pos, ui_Arc_WG_Pos);
+    lv_anim_set_values(&anim_wg_pos, 0, 100);
+    lv_anim_set_time(&anim_wg_pos, 2500);
+    lv_anim_set_playback_time(&anim_wg_pos, 2500);
+    lv_anim_set_repeat_count(&anim_wg_pos, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_exec_cb(&anim_wg_pos, anim_value_cb_screen4);
+
+    lv_anim_init(&anim_bov);
+    lv_anim_set_var(&anim_bov, ui_Arc_BOV);
+    lv_anim_set_values(&anim_bov, 0, 100);
+    lv_anim_set_time(&anim_bov, 2000);
+    lv_anim_set_playback_time(&anim_bov, 2000);
+    lv_anim_set_repeat_count(&anim_bov, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_exec_cb(&anim_bov, anim_value_cb_screen4);
+
+    lv_anim_init(&anim_tcu_tq_req);
+    lv_anim_set_var(&anim_tcu_tq_req, ui_Arc_TCU_TQ_Req);
+    lv_anim_set_values(&anim_tcu_tq_req, 0, 500);
+    lv_anim_set_time(&anim_tcu_tq_req, 4000);
+    lv_anim_set_playback_time(&anim_tcu_tq_req, 4000);
+    lv_anim_set_repeat_count(&anim_tcu_tq_req, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_exec_cb(&anim_tcu_tq_req, anim_value_cb_screen4);
+
+    lv_anim_init(&anim_tcu_tq_act);
+    lv_anim_set_var(&anim_tcu_tq_act, ui_Arc_TCU_TQ_Act);
+    lv_anim_set_values(&anim_tcu_tq_act, 0, 500);
+    lv_anim_set_time(&anim_tcu_tq_act, 3500);
+    lv_anim_set_playback_time(&anim_tcu_tq_act, 3500);
+    lv_anim_set_repeat_count(&anim_tcu_tq_act, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_exec_cb(&anim_tcu_tq_act, anim_value_cb_screen4);
+
+    lv_anim_init(&anim_eng_tq_req);
+    lv_anim_set_var(&anim_eng_tq_req, ui_Arc_Eng_TQ_Req);
+    lv_anim_set_values(&anim_eng_tq_req, 0, 500);
+    lv_anim_set_time(&anim_eng_tq_req, 4500);
+    lv_anim_set_playback_time(&anim_eng_tq_req, 4500);
+    lv_anim_set_repeat_count(&anim_eng_tq_req, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_exec_cb(&anim_eng_tq_req, anim_value_cb_screen4);
+
+
+    if (demo_mode_get_enabled()) {
+        ui_Screen4_update_animations(true);
+    }
+
     ESP_LOGI("SCREEN4", "Screen 4 initialized with ECU gauges");
+}
+
+static void anim_value_cb_screen4(void * var, int32_t v)
+{
+    lv_arc_set_value((lv_obj_t *)var, v);
+
+    if (var == ui_Arc_Abs_Pedal) lv_label_set_text_fmt(ui_Label_Abs_Pedal_Value, "%d", v);
+    else if (var == ui_Arc_WG_Pos) lv_label_set_text_fmt(ui_Label_WG_Pos_Value, "%d", v);
+    else if (var == ui_Arc_BOV) lv_label_set_text_fmt(ui_Label_BOV_Value, "%d", v);
+    else if (var == ui_Arc_TCU_TQ_Req) lv_label_set_text_fmt(ui_Label_TCU_TQ_Req_Value, "%d", v);
+    else if (var == ui_Arc_TCU_TQ_Act) lv_label_set_text_fmt(ui_Label_TCU_TQ_Act_Value, "%d", v);
+    else if (var == ui_Arc_Eng_TQ_Req) lv_label_set_text_fmt(ui_Label_Eng_TQ_Req_Value, "%d", v);
+}
+
+void ui_Screen4_update_animations(bool demo_enabled)
+{
+    if (demo_enabled) {
+        lv_anim_start(&anim_abs_pedal);
+        lv_anim_start(&anim_wg_pos);
+        lv_anim_start(&anim_bov);
+        lv_anim_start(&anim_tcu_tq_req);
+        lv_anim_start(&anim_tcu_tq_act);
+        lv_anim_start(&anim_eng_tq_req);
+    } else {
+        lv_anim_del(ui_Arc_Abs_Pedal, anim_value_cb_screen4);
+        lv_anim_del(ui_Arc_WG_Pos, anim_value_cb_screen4);
+        lv_anim_del(ui_Arc_BOV, anim_value_cb_screen4);
+        lv_anim_del(ui_Arc_TCU_TQ_Req, anim_value_cb_screen4);
+        lv_anim_del(ui_Arc_TCU_TQ_Act, anim_value_cb_screen4);
+        lv_anim_del(ui_Arc_Eng_TQ_Req, anim_value_cb_screen4);
+        // Here you might want to reset the arcs to their minimum values
+    }
 }
 
 static void swipe_handler_screen4(lv_event_t * e) {
@@ -142,13 +216,6 @@ static void swipe_handler_screen4(lv_event_t * e) {
     }
 }
 
-static void screen4_prev_screen_btn_event_cb(lv_event_t * e) {
-    if (lv_event_get_code(e) == LV_EVENT_CLICKED) ui_switch_to_next_enabled_screen(false);
-}
-
-static void screen4_next_screen_btn_event_cb(lv_event_t * e) {
-    if (lv_event_get_code(e) == LV_EVENT_CLICKED) ui_switch_to_next_enabled_screen(true);
-}
 
 void ui_Screen4_screen_destroy(void) {
     if (ui_Screen4) {

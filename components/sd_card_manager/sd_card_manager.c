@@ -7,10 +7,13 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/unistd.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 static const char *TAG = "SD_CARD";
 
 static bool g_can_trace_enabled = false;
+static SemaphoreHandle_t sd_card_mutex = NULL;
 
 // Pinout from user's example
 #define PIN_NUM_MISO 13
@@ -76,6 +79,17 @@ esp_err_t sd_card_init(void) {
     // Card has been initialized, print its properties
     sdmmc_card_print_info(stdout, s_card);
 
+    // Create the mutex for thread-safe file access
+    sd_card_mutex = xSemaphoreCreateMutex();
+    if (sd_card_mutex == NULL) {
+        ESP_LOGE(TAG, "Failed to create SD card mutex");
+        // Cleanup already initialized resources
+        esp_vfs_fat_sdcard_unmount(MOUNT_POINT, s_card);
+        spi_bus_free(s_host.slot);
+        return ESP_ERR_NO_MEM;
+    }
+    ESP_LOGI(TAG, "SD card mutex created");
+
     return ESP_OK;
 }
 
@@ -84,34 +98,48 @@ esp_err_t sd_card_deinit(void) {
         esp_vfs_fat_sdcard_unmount(MOUNT_POINT, s_card);
         ESP_LOGI(TAG, "SD card unmounted");
     }
+    if (sd_card_mutex) {
+        vSemaphoreDelete(sd_card_mutex);
+        sd_card_mutex = NULL;
+    }
     spi_bus_free(s_host.slot);
     ESP_LOGI(TAG, "SPI bus freed");
     return ESP_OK;
 }
 
 esp_err_t sd_card_write_file(const char* path, const char* data) {
-    ESP_LOGI(TAG, "Writing file: %s", path);
-    FILE *f = fopen(path, "w");
-    if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for writing");
-        return ESP_FAIL;
+    if (xSemaphoreTake(sd_card_mutex, portMAX_DELAY) == pdTRUE) {
+        ESP_LOGI(TAG, "Writing file: %s", path);
+        FILE *f = fopen(path, "w");
+        if (f == NULL) {
+            ESP_LOGE(TAG, "Failed to open file for writing");
+            xSemaphoreGive(sd_card_mutex);
+            return ESP_FAIL;
+        }
+        fprintf(f, "%s", data);
+        fclose(f);
+        ESP_LOGI(TAG, "File written");
+        xSemaphoreGive(sd_card_mutex);
+        return ESP_OK;
     }
-    fprintf(f, "%s", data);
-    fclose(f);
-    ESP_LOGI(TAG, "File written");
-    return ESP_OK;
+    return ESP_ERR_TIMEOUT;
 }
 
 esp_err_t sd_card_append_file(const char* path, const char* data) {
-    ESP_LOGD(TAG, "Appending to file: %s", path);
-    FILE *f = fopen(path, "a");
-    if (f == NULL) {
-        ESP_LOGE(TAG, "Failed to open file for appending");
-        return ESP_FAIL;
+    if (xSemaphoreTake(sd_card_mutex, portMAX_DELAY) == pdTRUE) {
+        ESP_LOGD(TAG, "Appending to file: %s", path);
+        FILE *f = fopen(path, "a");
+        if (f == NULL) {
+            ESP_LOGE(TAG, "Failed to open file for appending");
+            xSemaphoreGive(sd_card_mutex);
+            return ESP_FAIL;
+        }
+        fprintf(f, "%s", data);
+        fclose(f);
+        xSemaphoreGive(sd_card_mutex);
+        return ESP_OK;
     }
-    fprintf(f, "%s", data);
-    fclose(f);
-    return ESP_OK;
+    return ESP_ERR_TIMEOUT;
 }
 
 void sd_card_set_can_trace_enabled(bool enabled) {

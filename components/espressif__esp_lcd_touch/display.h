@@ -147,7 +147,6 @@ static void example_lvgl_port_task(void *arg)
         // Lock the mutex due to the LVGL APIs are not thread-safe
         if (example_lvgl_lock(-1)) {
             task_delay_ms = lv_timer_handler();
-            update_all_gauges(); // Update our custom gauges
             // Release the mutex
             example_lvgl_unlock();
         }

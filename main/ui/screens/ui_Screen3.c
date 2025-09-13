@@ -41,8 +41,6 @@ static uint8_t last_can_dlc = 0;
 // Function prototypes
 static void screen3_touch_handler(lv_event_t * e);
 static void swipe_handler_screen3(lv_event_t * e);
-static void screen3_prev_screen_btn_event_cb(lv_event_t * e);
-static void screen3_next_screen_btn_event_cb(lv_event_t * e);
 static void clear_button_event_cb(lv_event_t * e);
 static void sniffer_button_event_cb(lv_event_t * e);
 static void search_text_event_cb(lv_event_t * e);
@@ -87,24 +85,6 @@ static void swipe_handler_screen3(lv_event_t * e) {
             }
         }
         is_swiping = 0;
-    }
-}
-
-// Previous screen button event callback
-static void screen3_prev_screen_btn_event_cb(lv_event_t * e) {
-    lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_CLICKED) {
-        // Switch to previous enabled screen (backward direction)
-        ui_switch_to_next_enabled_screen(false);
-    }
-}
-
-// Next screen button event callback
-static void screen3_next_screen_btn_event_cb(lv_event_t * e) {
-    lv_event_code_t code = lv_event_get_code(e);
-    if (code == LV_EVENT_CLICKED) {
-        // Switch to next enabled screen (forward direction)
-        ui_switch_to_next_enabled_screen(true);
     }
 }
 
@@ -374,49 +354,8 @@ void ui_Screen3_screen_init(void)
     lv_obj_add_event_cb(ui_Screen3, swipe_handler_screen3, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_Screen3, swipe_handler_screen3, LV_EVENT_RELEASED, NULL);
     
-    // Add navigation buttons for screen switching
-    // Previous screen button (left arrow)
-    // Previous screen button (left arrow)
-    lv_obj_t * prev_screen_btn = lv_btn_create(ui_Screen3);
-    lv_obj_set_size(prev_screen_btn, 50, 50);
-    lv_obj_align(prev_screen_btn, LV_ALIGN_BOTTOM_LEFT, 20, -20);
-    lv_obj_set_style_bg_color(prev_screen_btn, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(prev_screen_btn, 25, 0);
-    lv_obj_add_event_cb(prev_screen_btn, screen3_prev_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t * prev_icon = lv_label_create(prev_screen_btn);
-    lv_label_set_text(prev_icon, "←");
-    lv_obj_set_style_text_color(prev_icon, lv_color_white(), 0);
-    lv_obj_set_style_text_font(prev_icon, &lv_font_montserrat_20, 0);
-    lv_obj_center(prev_icon);
-
-    // Previous screen label
-    lv_obj_t * prev_label = lv_label_create(ui_Screen3);
-    lv_label_set_text(prev_label, "Prev Screen");
-    lv_obj_set_style_text_color(prev_label, lv_color_hex(0x888888), 0);
-    lv_obj_set_style_text_font(prev_label, &lv_font_montserrat_12, 0);
-    lv_obj_align_to(prev_label, prev_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
-
-    // Next screen button (right arrow)
-    lv_obj_t * next_screen_btn = lv_btn_create(ui_Screen3);
-    lv_obj_set_size(next_screen_btn, 50, 50);
-    lv_obj_align(next_screen_btn, LV_ALIGN_BOTTOM_RIGHT, -20, -20);
-    lv_obj_set_style_bg_color(next_screen_btn, lv_color_hex(0x00D4FF), 0);
-    lv_obj_set_style_radius(next_screen_btn, 25, 0);
-    lv_obj_add_event_cb(next_screen_btn, screen3_next_screen_btn_event_cb, LV_EVENT_CLICKED, NULL);
-
-    lv_obj_t * next_icon = lv_label_create(next_screen_btn);
-    lv_label_set_text(next_icon, "→");
-    lv_obj_set_style_text_color(next_icon, lv_color_white(), 0);
-    lv_obj_set_style_text_font(next_icon, &lv_font_montserrat_20, 0);
-    lv_obj_center(next_icon);
-
-    // Next screen label
-    lv_obj_t * next_label = lv_label_create(ui_Screen3);
-    lv_label_set_text(next_label, "Next Screen");
-    lv_obj_set_style_text_color(next_label, lv_color_hex(0x888888), 0);
-    lv_obj_set_style_text_font(next_label, &lv_font_montserrat_12, 0);
-    lv_obj_align_to(next_label, next_screen_btn, LV_ALIGN_OUT_BOTTOM_MID, 0, 5);
+    // Add standardized navigation buttons
+    ui_create_standard_navigation_buttons(ui_Screen3);
 }
 
 // Destroy Screen3

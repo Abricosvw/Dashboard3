@@ -44,11 +44,12 @@ void parse_can_message(const twai_message_t* message) {
             raw_value_percent = message->data[5] * 0.3937f;
             ecu_data->eng_trg_nm = (raw_value_percent / 100.0f) * g_max_torque_nm;
 
-            // Note: The user spec says byte 3 is for Engine Actual Torque, but it's also used for RPM.
-            // This is a conflict. Assuming the lower byte of the RPM is the torque for now.
-            // This should be clarified with the user.
-            raw_value_percent = message->data[3] * 0.3937f; // Re-using byte 3
-            ecu_data->eng_act_nm = (raw_value_percent / 100.0f) * g_max_torque_nm;
+            // TODO: Resolve data conflict for Engine Actual Torque (eng_act_nm).
+            // The user specification maps eng_act_nm to byte 3, but this byte is already
+            // used as the low byte for the 16-bit engine_rpm value.
+            // Disabling eng_act_nm parsing for now to prioritize engine_rpm.
+            // raw_value_percent = message->data[3] * 0.3937f;
+            // ecu_data->eng_act_nm = (raw_value_percent / 100.0f) * g_max_torque_nm;
             break;
 
         case 0x580: // MAP

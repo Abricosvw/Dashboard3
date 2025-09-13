@@ -77,9 +77,14 @@ static void background_task_worker(void *pvParameters)
                 }
 
                 case BG_TASK_SETTINGS_SAVE: {
-                    settings_save();
-                    // The settings_save function handles its own logging, so no result to check here.
-                    result = ESP_OK;
+                    if (task.data) {
+                        settings_save((const touch_settings_t *)task.data);
+                        // The data was malloc'd in trigger_settings_save, so we must free it here.
+                        free(task.data);
+                    } else {
+                        ESP_LOGE(TAG, "BG_TASK_SETTINGS_SAVE received null data!");
+                        result = ESP_ERR_INVALID_ARG;
+                    }
                     break;
                 }
 

@@ -1,0 +1,5 @@
+## ESP-IDF Component Manifest
+dependencies:
+  espressif/driver: "*"
+  espressif/fatfs: "*"
+  espressif/sdmmc: "*"
