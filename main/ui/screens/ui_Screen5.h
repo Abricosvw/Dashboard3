@@ -9,6 +9,7 @@ extern "C" {
 #include "lvgl.h"
 
 void ui_Screen5_screen_init(void);
+void ui_Screen5_screen_destroy(void);
 extern lv_obj_t * ui_Screen5;
 
 extern lv_obj_t * ui_Arc_Eng_TQ_Act;

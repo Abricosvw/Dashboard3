@@ -149,3 +149,10 @@ static void screen4_prev_screen_btn_event_cb(lv_event_t * e) {
 static void screen4_next_screen_btn_event_cb(lv_event_t * e) {
     if (lv_event_get_code(e) == LV_EVENT_CLICKED) ui_switch_to_next_enabled_screen(true);
 }
+
+void ui_Screen4_screen_destroy(void) {
+    if (ui_Screen4) {
+        lv_obj_del(ui_Screen4);
+        ui_Screen4 = NULL;
+    }
+}

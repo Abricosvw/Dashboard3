@@ -9,6 +9,7 @@ extern "C" {
 #include "lvgl.h"
 
 void ui_Screen4_screen_init(void);
+void ui_Screen4_screen_destroy(void);
 extern lv_obj_t * ui_Screen4;
 extern lv_obj_t * ui_Arc_Abs_Pedal;
 extern lv_obj_t * ui_Arc_WG_Pos;
