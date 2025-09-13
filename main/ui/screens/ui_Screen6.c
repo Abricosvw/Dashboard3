@@ -238,7 +238,7 @@ void ui_Screen6_screen_destroy(void)
     }
 }
 
-// Load Screen6 settings from NVS
+// Load Screen6 settings from the configuration system (which uses SD card)
 void ui_Screen6_load_settings(void)
 {
     demo_mode_enabled = demo_mode_get_enabled();
@@ -248,7 +248,7 @@ void ui_Screen6_load_settings(void)
              screen3_enabled ? "ON" : "OFF");
 }
 
-// Save Screen6 settings to NVS
+// Save Screen6 settings to the SD Card via the configuration system
 void ui_Screen6_save_settings(void)
 {
     demo_mode_set_enabled(demo_mode_enabled);
@@ -295,7 +295,7 @@ void ui_Screen6_update_button_states(void)
 // Save device settings (wrapper)
 void ui_save_device_settings(void)
 {
-    ESP_LOGI("SCREEN6", "Saving device settings to NVS");
+    ESP_LOGI("SCREEN6", "Saving device settings to SD Card");
     ui_Screen6_save_settings();
 }
 
@@ -315,7 +315,7 @@ void ui_reset_device_settings(void)
     // 2. Обновляем внешний вид кнопок на экране, чтобы отразить сброс
     ui_Screen6_update_button_states();
 
-    // 3. Сохраняем эти новые значения по умолчанию в NVS асинхронно
+    // 3. Сохраняем эти новые значения по умолчанию на SD-карту асинхронно
     // Эта функция уже вызывает trigger_settings_save() и не блокирует UI.
     ui_Screen6_save_settings();
 }
