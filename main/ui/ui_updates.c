@@ -1,6 +1,6 @@
 #include "ui_updates.h"
 #include "ui.h"
-#include "main/include/ecu_data.h"
+#include "ecu_data.h"
 #include <stdio.h>
 
 // This function is called periodically by the LVGL task.

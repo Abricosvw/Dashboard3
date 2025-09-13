@@ -43,8 +43,8 @@ void ui_init(void)
     // Initialize screen manager
     ui_screen_manager_init();
 
-    // Load settings from NVS
-    settings_load_from_nvs();
+    // Load settings
+    settings_load();
 
     // Initialize all screens
     ui_Screen1_screen_init();
